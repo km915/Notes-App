@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0b1220">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
 <title>Notes</title>
@@ -13,9 +14,9 @@
 :root{--bg:#0b1220;--pn:#111a2e;--tx:#d8dee9;--dm:#7b88a1;--ac:#88c0d0;--se:#1c2a47}
 *{box-sizing:border-box;margin:0}
 html,body{height:100%;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,sans-serif;overscroll-behavior:none}
-body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+body{height:100dvh;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 header{display:flex;align-items:center;background:var(--pn);padding:2px 4px}
-#t{flex:1;color:var(--dm);padding:0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#t{flex:1;color:var(--tx);font-weight:600;padding:0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 button{background:none;border:0;color:var(--ac);font:inherit;min-width:44px;height:44px;cursor:pointer}
 #bk{display:none}
 main{flex:1;display:grid;grid-template-columns:180px 280px 1fr;min-height:0}
@@ -24,7 +25,10 @@ main{flex:1;display:grid;grid-template-columns:180px 280px 1fr;min-height:0}
 .i.s{background:var(--se)}
 .p.on .i.s{color:var(--ac);box-shadow:inset 3px 0 var(--ac)}
 .h{color:var(--dm);cursor:default}
-#E{flex:1;width:100%;background:none;color:inherit;border:0;outline:0;resize:none;padding:14px;font:inherit}
+#E{user-select:text;-webkit-user-select:text;flex:1;width:100%;background:none;color:inherit;border:0;outline:0;resize:none;padding:14px;font:inherit}
+#ch{display:none;overflow-x:auto;white-space:nowrap;background:var(--pn);border-top:1px solid var(--se);padding:6px 8px;scrollbar-width:none}
+#ch span{display:inline-block;padding:4px 12px;margin-right:6px;border-radius:14px;background:var(--bg);color:var(--dm)}
+#ch .s{background:var(--se);color:var(--ac)}
 #o{position:fixed;inset:0;background:#0009;display:flex;justify-content:center;align-items:flex-start;padding-top:12vh}
 #o[hidden]{display:none}
 #o>div{background:var(--pn);width:min(420px,92vw);border-radius:8px;overflow:hidden}
@@ -35,6 +39,7 @@ main{flex:1;display:grid;grid-template-columns:180px 280px 1fr;min-height:0}
  .p{display:none;height:100%;border:0}
  .p.on{display:flex}
  #bk{display:block}
+ #ch.v{display:block}
 }
 </style>
 </head>
@@ -43,6 +48,7 @@ main{flex:1;display:grid;grid-template-columns:180px 280px 1fr;min-height:0}
  <button id="bk">‹</button><span id="t"></span>
  <button id="st"></button><button id="ad">+</button><button id="up">▲</button><button id="dn">▼</button><button id="mn">⋯</button>
 </header>
+<nav id="ch"></nav>
 <main>
  <div class="p" id="P0"></div>
  <div class="p" id="P1"></div>
@@ -65,7 +71,7 @@ const TH=[
 const $=s=>document.querySelector(s),L=localStorage,E=$('#E'),Q=$('#q'),O=$('#o'),LS=$('#ls');
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const esc=s=>s.replace(/[&<>]/g,c=>'&#'+c.charCodeAt(0)+';');
-let D=JSON.parse(L.d||'{"f":[],"n":[]}'),fi=0,ni=0,pane=0,shown,ov,tok=L.tk,tm,busy,again;
+let D=JSON.parse(L.d||'{"f":[],"n":[]}'),fi=0,ni=0,pane=0,shown,ov,tok=L.tk,tm,busy,again,hl=history.state&&history.state.p||0;
 if(!D.f.length)D.f.push({id:'d',name:'Notes',o:1,t:1});
 const live=a=>a.filter(x=>!x.x).sort((a,b)=>a.o-b.o);
 const F=()=>live(D.f),N=()=>F()[fi]?live(D.n.filter(n=>n.f==F()[fi].id)):[];
@@ -85,8 +91,14 @@ function draw(){
  const x=N()[ni];
  if(!x)E.value='';else if(shown!=x.id||document.activeElement!=E)E.value=x.b;
  shown=x&&x.id;E.disabled=!x;
- $('#t').textContent=pane?f[fi].name:'Folders';
+ $('#t').textContent=pane==0?'Folders':pane==1?'Inside: '+f[fi].name:'Note in '+f[fi].name;
+ const cs=pane==1?f.map(x=>x.name):pane==2?n.map(x=>x.b.split('\n')[0]||'Empty'):[],ci=pane==1?fi:ni;
+ $('#ch').className=pane?'v':'';
+ $('#ch').innerHTML=cs.map((x,i)=>`<span${i==ci?' class="s"':''} data-i="${i}">${esc(x.length>9?x.slice(0,9)+'…':x)}</span>`).join('');
+ const sc=$('#ch .s');sc&&sc.scrollIntoView({inline:'center',block:'nearest'});
  pane==2?E.focus():E.blur();
+ // keep phone back button working: one history entry per level
+ if(pane>hl){history.pushState({p:pane},'');hl=pane}else if(pane<hl){const k=hl-pane;hl=pane;history.go(-k)}
 }
 function leave(){const x=N()[ni];if(pane==2&&x&&!x.b.trim()){x.x=1;x.t=Date.now();save()}}
 function back(){leave();pane=Math.max(0,pane-1);draw()}
@@ -162,6 +174,13 @@ $('main').onclick=ev=>{
  const k=+el.dataset.k,i=+el.dataset.i;
  k?ni=i:(fi=i,ni=0);pane=k+1;draw();
 };
+$('#ch').onclick=ev=>{
+ const el=ev.target.closest('[data-i]');if(!el)return;
+ const i=+el.dataset.i;
+ if(pane==1){fi=i;ni=0}else{const x=N()[i];leave();ni=N().indexOf(x)}
+ draw();
+};
+onpopstate=()=>{const p=history.state&&history.state.p||0;hl=p;if(p<pane){leave();pane=p;draw()}};
 $('#bk').onclick=back;$('#mn').onclick=menu;
 $('#ad').onclick=()=>pane?newNote():newFolder();
 $('#up').onclick=()=>move(-1);$('#dn').onclick=()=>move(1);
