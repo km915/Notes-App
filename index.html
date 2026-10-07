@@ -86,17 +86,17 @@ function draw(){
  fi=Math.max(0,Math.min(fi,f.length-1));ni=Math.max(0,Math.min(ni,N().length-1));
  const row=(a,k,s)=>a.map((x,i)=>`<div class="i${i==s?' s':''}" data-k="${k}" data-i="${i}">${esc(k?(x.b.split('\n')[0]||'Empty note'):x.name)}</div>`).join('');
  $('#P0').innerHTML=row(f,0,fi);
- $('#P1').innerHTML=n.length?row(n,1,ni):'<div class="i h">Press n for a new note</div>';
+ $('#P1').innerHTML=n.length?row(n,1,ni):'<div class="i h">Tap + (or press n) for a new note</div>';
  [0,1,2].forEach(i=>$('#P'+i).classList.toggle('on',i==pane));
  const x=N()[ni];
  if(!x)E.value='';else if(shown!=x.id||document.activeElement!=E)E.value=x.b;
  shown=x&&x.id;E.disabled=!x;
- $('#t').textContent=pane==0?'Folders':pane==1?f[fi].name:f[fi].name;
+ $('#t').textContent=pane?f[fi].name:'Folders';
  const cs=pane==1?f.map(x=>x.name):pane==2?n.map(x=>x.b.split('\n')[0]||'Empty'):[],ci=pane==1?fi:ni;
  $('#ch').className=pane?'v':'';
  $('#ch').innerHTML=cs.map((x,i)=>`<span${i==ci?' class="s"':''} data-i="${i}">${esc(x.length>9?x.slice(0,9)+'…':x)}</span>`).join('');
  const sc=$('#ch .s');sc&&sc.scrollIntoView({inline:'center',block:'nearest'});
- pane==2?E.focus():E.blur();
+ if(!ov)pane==2?E.focus():E.blur();
  // keep phone back button working: one history entry per level
  if(pane>hl){history.pushState({p:pane},'');hl=pane}else if(pane<hl){const k=hl-pane;hl=pane;history.go(-k)}
 }
