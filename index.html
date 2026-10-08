@@ -91,7 +91,7 @@ function draw(){
  const x=N()[ni];
  if(!x)E.value='';else if(shown!=x.id||document.activeElement!=E)E.value=x.b;
  shown=x&&x.id;E.disabled=!x;
- $('#t').textContent=pane?f[fi].name:'divyand';
+ $('#t').textContent=pane?f[fi].name:'Folders';
  const cs=pane==1?f.map(x=>x.name):pane==2?n.map(x=>x.b.split('\n')[0]||'Empty'):[],ci=pane==1?fi:ni;
  $('#ch').className=pane?'v':'';
  $('#ch').innerHTML=cs.map((x,i)=>`<span${i==ci?' class="s"':''} data-i="${i}">${esc(x.length>9?x.slice(0,9)+'…':x)}</span>`).join('');
