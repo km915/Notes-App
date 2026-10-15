@@ -12,6 +12,46 @@ Newest first. Add a new entry at the top with every commit (copy the template at
 - Clean-up of old deleted items in `notes.json`
 - 12-hour clock option
 
+## v0.6 — Modularisation (refactor, no behaviour change)
+
+The single 560-line `index.html` is now split by job. The code itself is unchanged; it was only moved, and nothing was rewritten.
+
+**File map** (scripts load in this order and share one global scope, so no build step is needed)
+
+| File | Job |
+|---|---|
+| `index.html` | Page markup only; loads the files below |
+| `style.css` | All styling (sections are commented) |
+| `core.js` | Client ID, themes, date helpers, data and shared state, saving, theme application |
+| `notes.js` | Folders and notes: drawing lists, ordering, notes keyboard keys, clicks, column resizing |
+| `calendar.js` | Calendar views, tasks, time dial, task form, task ↔ To-Do note links, calendar keys |
+| `sync.js` | Google Drive sign-in, merge and sync |
+| `app.js` | Shortcut list, menu and prompts, key routing, view switching, header buttons, startup |
+| `sw.js` | Offline support (keeps its own file list) |
+| `manifest.json`, `icon.png` | Install-as-app details |
+
+**Changed**
+- The big keyboard handler is now two parts: `app.js` handles global keys (Tab, Shift+T) and hands the rest to `notesKey()` in `notes.js` or `calKey()` in `calendar.js`.
+- CSS split into labelled sections. Rule order is unchanged, so nothing looks different.
+- `sw.js` now lists every app file for offline use and always re-checks files with the server, so the page can't mix old and new scripts after an update.
+
+**Rules for adding to the app**
+- New file: add a `<script>` tag in `index.html` (before `app.js`) and add the name to `FILES` in `sw.js`.
+- A script can use anything from files above it; `app.js` can use everything.
+
+## v0.5 — Time dial, end-time rules, repeat delete, note headings
+
+**Added**
+- Time dial for the task form: inner ring 1–12, outer ring 13–23 and 00; minutes 00 / 15 / 30 / 45 (tap between them to snap to the nearest). Tap the hour or minute in the middle to jump between them. `Esc` closes the dial first.
+- End time defaults to start + 15 minutes and must come after the start. A start at 23:45 or later puts the end on the next day (shown as `+1`).
+- `Alt+Up/Down` shifting works for tasks that run past midnight.
+- Deleting one day of a repeating task asks: `y` = this day only, `a` = all repeats (the series note is deleted too).
+- Task notes start with `HH:MM title` and follow edits and shifts of single tasks.
+- `Shift+T` switches theme from anywhere (notes or calendar); `Tab+Enter` from a split view opens the left side; Details opens notes to the right of the calendar.
+
+**Changed**
+- Themes are always last in the shortcuts list.
+
 ## v0.4 — Shortcuts list, To-Do notes, simpler task window
 
 **Added**

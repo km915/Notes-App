@@ -1,0 +1,121 @@
+/* style.css — all styling. Colours come from CSS variables that core.js sets per theme. */
+
+/* ===== Base, header, three-column layout ===== */
+:root{color-scheme:dark;--bg:#0b1220;--pn:#111a2e;--tx:#d8dee9;--dm:#7b88a1;--ac:#88c0d0;--se:#1c2a47;--gl:color-mix(in srgb,var(--ac) 35%,transparent)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,sans-serif;overscroll-behavior:none}
+body{height:100dvh;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;background:var(--pn);padding:2px 4px}
+#t{flex:1;color:var(--tx);font-weight:600;padding:0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+button{background:none;border:0;color:var(--ac);font:inherit;min-width:44px;height:44px;cursor:pointer}
+#bk{display:none}
+main{flex:1;display:grid;grid-template-columns:var(--w0,180px) var(--w1,280px) minmax(0,1fr);min-height:0;position:relative}
+.p{display:flex;flex-direction:column;overflow:auto;border-right:1px solid var(--se);min-height:0}
+.i{padding:10px 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.i.s{background:var(--se)}
+.p.on .i.s{color:var(--ac);box-shadow:inset 3px 0 var(--ac)}
+.h{color:var(--dm);cursor:default}
+#E{user-select:text;-webkit-user-select:text;flex:1;width:100%;background:none;color:inherit;border:0;outline:0;resize:none;padding:14px;font:inherit}
+#ch{display:none;overflow-x:auto;white-space:nowrap;background:var(--pn);border-top:1px solid var(--se);padding:6px 8px;scrollbar-width:none}
+#ch span{display:inline-block;padding:4px 12px;margin-right:6px;border-radius:14px;background:var(--bg);color:var(--dm)}
+#ch .s{background:var(--se);color:var(--ac)}
+/* ===== Column dividers (laptop) and hover glow ===== */
+.g{position:absolute;top:0;bottom:0;width:8px;margin-left:-4px;cursor:col-resize;z-index:2;touch-action:none}
+.g:first-of-type{left:var(--w0,180px)}
+.g:nth-of-type(2){left:calc(var(--w0,180px) + var(--w1,280px))}
+.g:hover,.g:active{background:var(--se)}
+button,.i,#ch span{transition:box-shadow .15s,text-shadow .15s}
+@media(hover:hover){
+ .i:not(.h):hover{box-shadow:inset 0 0 14px var(--gl)}
+ .p.on .i.s:hover{box-shadow:inset 3px 0 var(--ac),inset 0 0 14px var(--gl)}
+ button:hover{text-shadow:0 0 8px var(--ac)}
+ #ch span:hover{box-shadow:0 0 8px var(--gl)}
+}
+/* ===== Popups: shortcuts menu (#o) and task form (#o2) ===== */
+#o,#o2{position:fixed;inset:0;background:#0009;display:flex;justify-content:center;align-items:flex-start;padding-top:12vh}
+#o[hidden],#o2[hidden]{display:none}
+#o>div,#o2>div{background:var(--pn);width:min(420px,92vw);border-radius:8px;overflow:hidden}
+#q{width:100%;padding:14px;background:none;border:0;border-bottom:1px solid var(--se);color:inherit;font:inherit;outline:0}
+#o b{display:inline-block;min-width:8.5em;color:var(--dm);font-weight:400}
+input{user-select:text;-webkit-user-select:text}
+#ls{max-height:60vh;overflow:auto}
+/* ===== To-Do folder, calendar views ===== */
+#V{display:none;overflow:auto;padding:10px;min-height:0;background:var(--bg);color:var(--tx);--gl:color-mix(in srgb,var(--ac) 35%,transparent)}
+.hd{padding:10px 14px 2px;color:var(--ac);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.i.td{font-weight:700;color:var(--ac);background:color-mix(in srgb,var(--ac) 12%,transparent)}
+#ch .td{color:var(--ac);font-weight:700}
+#V.f{box-shadow:inset 0 2px 0 var(--ac)}
+main.c{grid-template-columns:minmax(0,1fr)}
+main.c .p,main.c .g,main.sl .g,main.sr .g{display:none}
+main.c #V{display:block}
+.tb{display:flex;align-items:center;gap:2px;margin-bottom:8px}
+.tb b{flex:1;text-align:center}
+.tb button{min-width:36px;height:36px;border-radius:6px}
+.tb .s{background:var(--se)}
+.wk,.mg,.wg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.wk b{color:var(--dm);font-weight:400;text-align:center;font-size:13px}
+.mg{gap:2px;grid-auto-rows:minmax(76px,1fr)}
+.dc{background:var(--pn);padding:4px;overflow:hidden;border-radius:6px;cursor:pointer}
+.dc span{color:var(--dm);font-size:13px}
+.dc.o{opacity:.45}
+.dc.td span{color:var(--ac);font-weight:700}
+.dc i{display:block;font-style:normal;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--se);border-radius:3px;margin-top:2px;padding:0 4px}
+.dc.s,.wc.s{box-shadow:inset 0 0 0 2px var(--ac)}
+.wg{gap:4px}
+.wc{background:var(--pn);border-radius:6px;padding:6px;min-height:200px;cursor:pointer;min-width:0}
+.wc h4{color:var(--dm);font-size:13px;font-weight:400;margin-bottom:4px}
+.tk{padding:8px 12px;border-radius:6px;background:var(--pn);margin-bottom:6px;cursor:pointer}
+.wc .tk{padding:3px 6px;font-size:13px;background:var(--se);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tk.s{box-shadow:inset 3px 0 var(--ac);background:var(--se)}
+.tk b{color:var(--ac);font-weight:600;margin-right:8px}
+.dn,.dn b{text-decoration:line-through;opacity:.5}
+/* ===== Phone bottom bar ===== */
+#nv{display:none;background:var(--pn);border-top:1px solid var(--se)}
+#nv button{flex:1}
+#nv .s{color:var(--tx);background:var(--se)}
+/* ===== Task form and time dial ===== */
+#o2>div{padding:14px;display:grid;gap:8px;max-height:86vh;overflow:auto}
+#o2 input{background:var(--bg);color:inherit;border:1px solid var(--se);border-radius:6px;padding:8px;font:inherit;min-width:0}
+#o2 .r{display:flex;gap:6px;align-items:center}
+#o2 .r span{color:var(--dm)}
+#o2 .r input[type=checkbox]{width:18px;height:18px}
+#o2 .bt{background:none;border:1px solid var(--se);color:var(--dm);padding:0 2px;height:38px;min-width:0}
+#o2 .bt.on{color:var(--ac);border-color:var(--ac);box-shadow:0 0 10px var(--gl)}
+#o2 button{background:var(--se);border-radius:6px;flex:1}
+#o2 .tc{font-variant-numeric:tabular-nums}
+#o2 .tc.on{box-shadow:inset 0 0 0 1px var(--ac);color:var(--tx)}
+#dl{display:grid;justify-items:center}
+#dl[hidden]{display:none}
+.dial{position:relative;width:min(264px,100%);aspect-ratio:1;border-radius:50%;background:var(--bg);border:1px solid var(--se)}
+#o2 .dk{position:absolute;transform:translate(-50%,-50%);width:32px;height:32px;min-width:0;padding:0;flex:none;border-radius:50%;background:none;color:var(--tx);font-size:14px}
+#o2 .dk.q{width:46px;height:46px;font-size:16px}
+#o2 .dk.on{background:var(--ac);color:var(--bg)}
+#o2 .dk:disabled{opacity:.2;cursor:default}
+.dr{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none}
+.dr small{color:var(--dm);font-size:12px}
+.dr span{pointer-events:auto;cursor:pointer;font-size:26px;font-weight:600;padding:0 2px}
+.dr span.on{color:var(--ac)}
+/* ===== Calendar hover glow (after the calendar rules on purpose) ===== */
+@media(hover:hover){.dc:hover,.tk:hover,.wc:hover{box-shadow:inset 0 0 14px var(--gl)}}
+/* ===== Split view (laptop) and phone layout ===== */
+@media(min-width:701px){
+ main.sl{grid-template-columns:minmax(0,1.4fr) 110px 200px minmax(0,1fr)}
+ main.sr{grid-template-columns:110px 200px minmax(0,1fr) minmax(0,1.4fr)}
+ main.sl #V,main.sr #V{display:block}
+ main.sl #V{order:-1}
+}
+@media(max-width:700px){
+ .wg{grid-template-columns:1fr}
+ .wc{min-height:0}
+ .mg{grid-auto-rows:minmax(60px,1fr)}
+ main.c #V{height:100%}
+ #nv{display:flex}
+}
+@media(max-width:700px){
+ main{display:block}
+ .p{display:none;height:100%;border:0}
+ .p.on{display:flex}
+ #bk{display:block}
+ #ch.v{display:block}
+ .g{display:none}
+}
