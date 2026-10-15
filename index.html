@@ -8,11 +8,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <title>Notes</title>
 <style>
-:root{--bg:#0b1220;--pn:#111a2e;--tx:#d8dee9;--dm:#7b88a1;--ac:#88c0d0;--se:#1c2a47}
+:root{--bg:#0b1220;--pn:#111a2e;--tx:#d8dee9;--dm:#7b88a1;--ac:#88c0d0;--se:#1c2a47;--gl:color-mix(in srgb,var(--ac) 35%,transparent)}
 *{box-sizing:border-box;margin:0}
 html,body{height:100%;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,sans-serif;overscroll-behavior:none}
 body{height:100dvh;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
@@ -20,7 +19,7 @@ header{display:flex;align-items:center;background:var(--pn);padding:2px 4px}
 #t{flex:1;color:var(--tx);font-weight:600;padding:0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 button{background:none;border:0;color:var(--ac);font:inherit;min-width:44px;height:44px;cursor:pointer}
 #bk{display:none}
-main{flex:1;display:grid;grid-template-columns:180px 280px 1fr;min-height:0}
+main{flex:1;display:grid;grid-template-columns:var(--w0,180px) var(--w1,280px) minmax(0,1fr);min-height:0;position:relative}
 .p{display:flex;flex-direction:column;overflow:auto;border-right:1px solid var(--se);min-height:0}
 .i{padding:10px 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .i.s{background:var(--se)}
@@ -30,6 +29,19 @@ main{flex:1;display:grid;grid-template-columns:180px 280px 1fr;min-height:0}
 #ch{display:none;overflow-x:auto;white-space:nowrap;background:var(--pn);border-top:1px solid var(--se);padding:6px 8px;scrollbar-width:none}
 #ch span{display:inline-block;padding:4px 12px;margin-right:6px;border-radius:14px;background:var(--bg);color:var(--dm)}
 #ch .s{background:var(--se);color:var(--ac)}
+#hint{display:none;color:var(--dm);font-size:13px;padding:0 10px;white-space:nowrap}
+.g{position:absolute;top:0;bottom:0;width:8px;margin-left:-4px;cursor:col-resize;z-index:2;touch-action:none}
+.g:first-of-type{left:var(--w0,180px)}
+.g:nth-of-type(2){left:calc(var(--w0,180px) + var(--w1,280px))}
+.g:hover,.g:active{background:var(--se)}
+button,.i,#ch span{transition:box-shadow .15s,text-shadow .15s}
+@media(hover:hover) and (min-width:701px){#hint{display:block}}
+@media(hover:hover){
+ .i:not(.h):hover{box-shadow:inset 0 0 14px var(--gl)}
+ .p.on .i.s:hover{box-shadow:inset 3px 0 var(--ac),inset 0 0 14px var(--gl)}
+ button:hover{text-shadow:0 0 8px var(--ac)}
+ #ch span:hover{box-shadow:0 0 8px var(--gl)}
+}
 #o{position:fixed;inset:0;background:#0009;display:flex;justify-content:center;align-items:flex-start;padding-top:12vh}
 #o[hidden]{display:none}
 #o>div{background:var(--pn);width:min(420px,92vw);border-radius:8px;overflow:hidden}
@@ -41,16 +53,18 @@ main{flex:1;display:grid;grid-template-columns:180px 280px 1fr;min-height:0}
  .p.on{display:flex}
  #bk{display:block}
  #ch.v{display:block}
+ .g{display:none}
 }
 </style>
 </head>
 <body>
 <header>
- <button id="bk">‹</button><span id="t"></span>
+ <button id="bk">‹</button><span id="t"></span><span id="hint">Esc · controls</span>
  <button id="st"></button><button id="ad">+</button><button id="up">▲</button><button id="dn">▼</button><button id="mn">⋯</button>
 </header>
 <nav id="ch"></nav>
 <main>
+ <i class="g" data-c="0"></i><i class="g" data-c="1"></i>
  <div class="p" id="P0"></div>
  <div class="p" id="P1"></div>
  <div class="p" id="P2"><textarea id="E" placeholder="Write…"></textarea></div>
@@ -186,6 +200,14 @@ $('#bk').onclick=back;$('#mn').onclick=menu;
 $('#ad').onclick=()=>pane?newNote():newFolder();
 $('#up').onclick=()=>move(-1);$('#dn').onclick=()=>move(1);
 $('#st').onclick=()=>{L.link=1;sync()};
+// drag the dividers to resize the columns (saved per device)
+document.querySelectorAll('.g').forEach(g=>g.onpointerdown=ev=>{
+ const k='--w'+g.dataset.c,x0=ev.clientX,w0=$('#P'+g.dataset.c).offsetWidth;
+ g.setPointerCapture(ev.pointerId);
+ g.onpointermove=m=>{const w=Math.max(100,Math.min(600,w0+m.clientX-x0));document.documentElement.style.setProperty(k,w+'px');L[k]=w};
+ g.onpointerup=()=>g.onpointermove=null;
+});
+['--w0','--w1'].forEach(k=>L[k]&&document.documentElement.style.setProperty(k,L[k]+'px'));
 
 // ---- Google Drive sync (one file: notes.json) ----
 const setSt=s=>$('#st').textContent=s; // ○ local only/offline  ◐ syncing  ● synced  ! tap to reconnect
