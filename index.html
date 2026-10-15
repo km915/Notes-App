@@ -87,6 +87,19 @@ main.c #V{display:block}
 #o2 .bt{background:none;border:1px solid var(--se);color:var(--dm);padding:0 2px;height:38px;min-width:0}
 #o2 .bt.on{color:var(--ac);border-color:var(--ac);box-shadow:0 0 10px var(--gl)}
 #o2 button{background:var(--se);border-radius:6px;flex:1}
+#o2 .tc{font-variant-numeric:tabular-nums}
+#o2 .tc.on{box-shadow:inset 0 0 0 1px var(--ac);color:var(--tx)}
+#dl{display:grid;justify-items:center}
+#dl[hidden]{display:none}
+.dial{position:relative;width:min(264px,100%);aspect-ratio:1;border-radius:50%;background:var(--bg);border:1px solid var(--se)}
+#o2 .dk{position:absolute;transform:translate(-50%,-50%);width:32px;height:32px;min-width:0;padding:0;flex:none;border-radius:50%;background:none;color:var(--tx);font-size:14px}
+#o2 .dk.q{width:46px;height:46px;font-size:16px}
+#o2 .dk.on{background:var(--ac);color:var(--bg)}
+#o2 .dk:disabled{opacity:.2;cursor:default}
+.dr{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none}
+.dr small{color:var(--dm);font-size:12px}
+.dr span{pointer-events:auto;cursor:pointer;font-size:26px;font-weight:600;padding:0 2px}
+.dr span.on{color:var(--ac)}
 @media(hover:hover){.dc:hover,.tk:hover,.wc:hover{box-shadow:inset 0 0 14px var(--gl)}}
 @media(min-width:701px){
  main.sl{grid-template-columns:minmax(0,1.4fr) 110px 200px minmax(0,1fr)}
@@ -218,10 +231,10 @@ function setTh(i){L.th=(i+TH.length)%TH.length;applyTh()}
 const C=[ // [key, label, action, scope: n=notes, c=calendar, none=general]
  ['Esc','Show / hide this list',()=>0],
  ['s','Sync / connect Drive',()=>{L.link=1;sync()}],
- ['Tab+Enter','Switch Notes / Calendar (closes a split view)',swap],
+ ['Tab+Enter','Switch Notes / Calendar (from split view: opens the left side)',swap],
  ['Tab+Left','Split view, calendar on left / move focus left',()=>split('l')],
  ['Tab+Right','Split view, calendar on right / move focus right',()=>split('r')],
- ...TH.map((t,i)=>['','Theme: '+t[0],()=>setTh(i)]),
+ ['Shift+T','Next theme',()=>setTh((+L.th||0)+1)],
  ['Up / Down','Move through folders / notes',()=>0,'n'],
  ['Right / Enter','Open folder / note',()=>0,'n'],
  ['Left','Go back',()=>0,'n'],
@@ -231,7 +244,6 @@ const C=[ // [key, label, action, scope: n=notes, c=calendar, none=general]
  ['d','Delete selected',del,'n'],
  ['Alt+Up','Move up in order',()=>move(-1),'n'],
  ['Alt+Down','Move down in order',()=>move(1),'n'],
- ['t','Next theme',()=>setTh((+L.th||0)+1),'n'],
  ['Left / Right','Previous / next day',()=>0,'c'],
  ['Up / Down','Week up / down (pick task in day view)',()=>0,'c'],
  ['[ and ]','Previous / next month, week or day',()=>0,'c'],
@@ -246,14 +258,15 @@ const C=[ // [key, label, action, scope: n=notes, c=calendar, none=general]
  ['m','Month view',()=>setV('m'),'c'],
  ['w','Week view',()=>setV('w'),'c'],
  ['d','Day view',()=>setV('d'),'c'],
- ['t','Jump to today',()=>{cd=iso(new Date());ti=0;drawC()},'c']
+ ['t','Jump to today',()=>{cd=iso(new Date());ti=0;drawC()},'c'],
+ ...TH.map((t,i)=>['','Theme: '+t[0],()=>setTh(i),'th']) // always last
 ];
 // ---- Popup: menu (Esc) and text prompts ----
-const order=()=>mode=='c'||mode=='s'&&sd=='l'?['','c','n']:['','n','c']; // general first, then the section on the left
+const order=()=>[...(mode=='c'||mode=='s'&&sd=='l'?['','c','n']:['','n','c']),'th']; // general first, then the section on the left, themes last
 const items=()=>{const q=Q.value.toLowerCase(),o=order();return C.filter(c=>c[1].toLowerCase().includes(q)).sort((a,b)=>o.indexOf(a[3]||'')-o.indexOf(b[3]||''))};
-function run(c){const k=c[3];if(k){if(mode=='s')cf=k=='c';else mode=k=='c'?'c':'n'}c[2]();draw()}
+function run(c){const k=c[3];if(k=='n'||k=='c'){if(mode=='s')cf=k=='c';else mode=k=='c'?'c':'n'}c[2]();draw()}
 function ml(){
- let g;const H={'':'General',n:'Notes',c:'Calendar'};
+ let g;const H={'':'General',n:'Notes',c:'Calendar',th:'Themes'};
  LS.innerHTML=items().map((c,i)=>{const k=c[3]||'',h=k!=g?(g=k,`<div class="hd">${H[k]}</div>`):'';return h+`<div class="i${i==ov.i?' s':''}" data-c="${i}"><b>${c[0]}</b>${c[1]}</div>`}).join('');
  const e=LS.querySelector('.s');e&&e.scrollIntoView({block:'nearest'});
 }
@@ -275,6 +288,7 @@ onkeydown=ev=>{
  const k=ev.key;
  if(ov||ev.target==Q)return;
  if(k=='Tab'){ev.preventDefault();tab=1;return}
+ if(k=='T'&&ev.shiftKey&&!ev.ctrlKey&&!ev.metaKey&&!ev.altKey&&ev.target!=E&&!tab){ev.preventDefault();return setTh((+L.th||0)+1)}
  if(tab){ev.preventDefault();if(!ev.repeat){if(k=='Enter')swap();if(k=='ArrowLeft')split('l');if(k=='ArrowRight')split('r')}return}
  if(cal())return calKey(ev);
  if(ev.target==E){if(k=='Escape'){ev.preventDefault();leave();pane=1;draw()}return}
@@ -333,34 +347,92 @@ function drawC(){
   h+='</div>';
  }else if(cv=='w'){
   h+='<div class="wg">'+days.map((n,i)=>{const s=addD(cd,i-wd);return `<div class="wc${s==cd?' s':''}" data-d="${s}"><h4>${n} ${+s.slice(8)}</h4>${TD(s).map((x,j)=>`<div class="tk${x.z?' dn':''}${s==cd&&j==ti?' s':''}" data-t="${x.id}">${x.s} ${esc(x.b)}</div>`).join('')}</div>`}).join('')+'</div>';
- }else h+=T.length?T.map((x,j)=>`<div class="tk${x.z?' dn':''}${j==ti?' s':''}" data-t="${x.id}"><b>${x.s}–${x.e}</b>${esc(x.b)}</div>`).join(''):'<div class="h" style="padding:12px">No tasks. Press n to add one.</div>';
+ }else h+=T.length?T.map((x,j)=>`<div class="tk${x.z?' dn':''}${j==ti?' s':''}" data-t="${x.id}"><b>${x.s}–${x.e}${x.ed?' +1':''}</b>${esc(x.b)}</div>`).join(''):'<div class="h" style="padding:12px">No tasks. Press n to add one.</div>';
  $('#V').innerHTML=h;$('#V').classList.toggle('f',mode=='s'&&cf);
 }
 const go=(n,big)=>{cd=big&&cv=='m'?addM(cd,n):addD(cd,big&&cv=='w'?7*n:n);ti=0;drawC()};
 const setV=v=>{cv=v;drawC()};
+let ft,dm; // task form: ft={s,e,n:end is next day,et:end picked by hand}, dm=open dial {w:'s'|'e',st:'h'|'m'}
+const pad=n=>String(n).padStart(2,'0'),tmin=h=>+h.slice(0,2)*60+ +h.slice(3),tstr=n=>pad(n/60|0)+':'+pad(n%60);
+const head=x=>x.s+' '+x.b; // a task's note starts with 'HH:MM title'
+function retitle(n,h){const i=n.b.indexOf('\n');n.b=h+(i<0?'':n.b.slice(i));n.t=Date.now()}
+function fixHead(x,oh){if(x.g||head(x)==oh)return;const n=D.n.find(n=>n.k==x.id&&!n.x);n&&retitle(n,head(x))}
 function shift(d){
  const x=curT();if(!x||cv!='d')return;
- const m=h=>+h.slice(0,2)*60+ +h.slice(3),f=n=>String(n/60|0).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
- const a=m(x.s),b=m(x.e),k=Math.max(-a,Math.min(1439-b,d*15));
- x.s=f(a+k);x.e=f(b+k);x.t=Date.now();save();ti=TD(cd).indexOf(x);drawC();
+ const a=tmin(x.s),b=tmin(x.e)+(x.ed?1440:0),oh=head(x),
+ k=Math.max(-a,Math.min(x.ed?Math.min(1439-a,2879-b):1439-b,d*15)),b2=b+k;
+ x.s=tstr(a+k);x.e=tstr(b2%1440);b2>=1440?x.ed=addD(x.d,1):delete x.ed;
+ x.t=Date.now();fixHead(x,oh);save();ti=TD(cd).indexOf(x);drawC();
 }
 function toggleDone(){const x=curT();if(x){x.z=x.z?0:1;x.t=Date.now();save();drawC()}}
-function delTask(){const x=curT();if(x)ask('Delete task? type y',v=>{if(v=='y'){x.x=1;x.t=Date.now();save();draw()}})}
+function delTask(){
+ const x=curT();if(!x)return;
+ const all=x.g?D.t.filter(y=>!y.x&&y.g==x.g):[];
+ if(all.length<2)return ask('Delete task? type y',v=>{if(v=='y'){x.x=1;x.t=Date.now();save();draw()}});
+ ask(`Delete: y = this day only, a = all ${all.length} repeats`,v=>{
+  v=v.toLowerCase();if(v!='y'&&v!='a')return;
+  const T=Date.now();(v=='a'?all:[x]).forEach(y=>{y.x=1;y.t=T});
+  if(v=='a'){const n=D.n.find(n=>n.k==x.g&&!n.x);if(n){n.x=1;n.t=T}}
+  save();draw();
+ });
+}
 function newTask(){taskForm()}
 function editTask(){const x=curT();x?taskForm(x):newTask()}
-const O2=$('#o2'),closeF=()=>{ov=null;O2.hidden=1;draw()};
+const O2=$('#o2'),closeF=()=>{ov=null;dm=null;O2.hidden=1;draw()};
 const now=()=>{const d=new Date();return iso(d)+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
 // a task's note lives in the To-Do folder; it shows there while the task is upcoming, or when the calendar is open on its date
-function vis(n){return !n.k||D.t.some(x=>(x.g||x.id)==n.k&&(!x.x&&!x.z&&x.d+x.e>now()||mode!='n'&&x.d==cd))}
-function ensureNote(x){const k=x.g||x.id;return D.n.find(n=>n.k==k&&!n.x)||add(D.n,{f:'todo',k,b:x.b+'\n'})}
+function vis(n){return !n.k||D.t.some(x=>(x.g||x.id)==n.k&&(!x.x&&!x.z&&(x.ed||x.d)+x.e>now()||mode!='n'&&x.d==cd))}
+function ensureNote(x){const k=x.g||x.id;return D.n.find(n=>n.k==k&&!n.x)||add(D.n,{f:'todo',k,b:head(x)+'\n'})}
 function openNote(x){
- const n=ensureNote(x);cd=x.d;mode='s';cf=0;fi=0;pane=2;ni=Math.max(0,N().indexOf(n));draw();
+ const n=ensureNote(x);cd=x.d;mode='s';sd='l';cf=0;fi=0;pane=2;ni=Math.max(0,N().indexOf(n));draw();
  E.setSelectionRange(E.value.length,E.value.length);
+}
+const ndm=()=>tmin(ft.s)>=1425; // start 23:45 or later: every end option falls on the next day
+const okT=(h,q)=>dm.w=='s'||ndm()||h*60+q>tmin(ft.s); // end must come after start
+function endTo(a){ft.n=a>=1440?1:0;ft.e=tstr(a%1440)}
+function setStart(v){ft.s=v;const S=tmin(v);if(!ft.et||ft.n&&S<1425||tmin(ft.e)+(ft.n?1440:0)<=S)endTo(S+15)}
+function fchips(){
+ $('#fs').textContent=ft.s;$('#fe').textContent=ft.e+(ft.n?' +1':'');
+ $('#fs').classList.toggle('on',!!dm&&dm.w=='s');$('#fe').classList.toggle('on',!!dm&&dm.w=='e');
+}
+function dial(){
+ fchips();const P=$('#dl');P.hidden=!dm;if(!dm)return;
+ const v=dm.w=='s'?ft.s:ft.e,h=+v.slice(0,2),m=+v.slice(3);
+ const bt=(r,a,val,lab,on,dis,c)=>`<button class="dk ${c}${on?' on':''}" data-v="${val}" style="left:${50+r*Math.sin(a)}%;top:${50-r*Math.cos(a)}%"${dis?' disabled':''}>${lab}</button>`;
+ let b='';
+ if(dm.st=='h')for(let i=0;i<12;i++){ // inner ring 1–12, outer ring 13–23 (+00 at the top)
+  const a=i*Math.PI/6,o=i?12+i:0,n=i||12;
+  b+=bt(27,a,n,n,h==n,!okT(n,45),'')+bt(42,a,o,pad(o),h==o,!okT(o,45),'');
+ }else[[0,'00'],[15,'15'],[30,'30'],[45,'45']].forEach(([q,l])=>b+=bt(34,q*Math.PI/30,q,l,m==q,!okT(h,q),'q'));
+ P.innerHTML=`<div class="dial">${b}<div class="dr"><small>${dm.w=='s'?'Start':ndm()?'End · next day':'End'}</small><div><span data-s="h"${dm.st=='h'?' class="on"':''}>${pad(h)}</span>:<span data-s="m"${dm.st=='m'?' class="on"':''}>${pad(m)}</span></div></div></div>`;
+}
+function pick(v){
+ const w=dm.w,x=w=='s'?ft.s:ft.e,hr=dm.st=='h';let h=+x.slice(0,2),m=+x.slice(3);
+ if(hr){h=v;if(!okT(h,m))m=[0,15,30,45].find(q=>okT(h,q));dm.st='m'}else m=v;
+ const nv=pad(h)+':'+pad(m);
+ if(w=='s'){if(hr)ft.s=nv;else setStart(nv)}else{ft.e=nv;ft.n=ndm()?1:0;ft.et=1}
+ if(!hr)dm=null;
+ dial();
+}
+function dclick(ev){
+ const s=ev.target.closest('[data-s]'),b=ev.target.closest('[data-v]');
+ if(s){dm.st=s.dataset.s;return dial()}
+ if(b)return b.disabled||pick(+b.dataset.v);
+ if(dm.st=='m'){ // tap between the four minute options: snap to the nearest
+  const r=ev.currentTarget.querySelector('.dial').getBoundingClientRect(),
+  a=(Math.atan2(ev.clientX-r.left-r.width/2,r.top+r.height/2-ev.clientY)*180/Math.PI+360)%360,
+  q=[0,15,30,45][Math.round(a/90)%4],h=+(dm.w=='s'?ft.s:ft.e).slice(0,2);
+  okT(h,q)&&pick(q);
+ }
 }
 function taskForm(t){
  ov={form:1};
+ const s=t?t.s:'09:00';
+ ft={s,e:t?t.e:tstr(tmin(s)+15),n:t&&t.ed?1:0,et:t?1:0};dm=null;
  $('#o2>div').innerHTML=`<input id="fb" placeholder="Task" value="${t?esc(t.b):''}">
- <div class="r"><input id="fd" type="date" value="${t?t.d:cd}"><input id="fs" type="time" value="${t?t.s:'09:00'}"><input id="fe" type="time" value="${t?t.e:'10:00'}"></div>
+ <div class="r"><input id="fd" type="date" value="${t?t.d:cd}" style="flex:1"></div>
+ <div class="r"><button class="tc" id="fs"></button><span>–</span><button class="tc" id="fe"></button></div>
+ <div id="dl" hidden></div>
  <button class="bt" id="fr">Repeats?</button>
  <div id="rp" hidden><div class="r">${days.map((n,i)=>`<button class="bt" data-w="${i}">${n}</button>`).join('')}</div>
   <div class="r" style="margin-top:8px"><span>Repeat for</span><input id="fw" type="number" min="1" max="52" value="1" style="width:70px"><span>weeks</span></div></div>
@@ -369,31 +441,36 @@ function taskForm(t){
  B[(dt(t?t.d:cd).getDay()+6)%7].classList.add('on');
  B.forEach(b=>b.onclick=()=>b.classList.toggle('on'));
  $('#fr').onclick=()=>{$('#fr').classList.toggle('on');$('#rp').hidden=!$('#fr').classList.contains('on')};
+ $('#fs').onclick=()=>{dm=dm&&dm.w=='s'?null:{w:'s',st:'h'};dial()};
+ $('#fe').onclick=()=>{dm=dm&&dm.w=='e'?null:{w:'e',st:'h'};dial()};
+ $('#dl').onclick=dclick;
  $('#fx').onclick=closeF;$('#fk').onclick=()=>saveTask(t);$('#fm').onclick=()=>saveTask(t,1);
- O2.hidden=0;$('#fb').focus();
+ fchips();O2.hidden=0;$('#fb').focus();
 }
 function saveTask(t,det){
- const b=$('#fb').value.trim(),d=$('#fd').value,s=$('#fs').value||'09:00',e=$('#fe').value||s;
+ const b=$('#fb').value.trim(),d=$('#fd').value,s=ft.s;
  if(!b||!d)return $('#fb').focus();
+ if(tmin(ft.e)+(ft.n?1440:0)<=tmin(s))endTo(tmin(s)+15); // never end before start
+ const e=ft.e,nx=ft.n,ex=x=>nx?{ed:addD(x,1)}:{};
  const W=$('#fr').classList.contains('on')?[...document.querySelectorAll('#rp .on')].map(x=>+x.dataset.w):[];
  let g=W.length?uid():0,first;
  if(t){
-  const nt=!t.g&&D.n.find(n=>n.k==t.id&&!n.x); // keep note heading = task heading
-  if(nt&&t.b!=b){const i=nt.b.indexOf('\n');nt.b=b+(i<0?'':nt.b.slice(i));nt.t=Date.now()}
-  if(g){const n=D.n.find(n=>n.k==(t.g||t.id)&&!n.x);t.g=t.g||g;g=t.g;if(n){n.k=g;n.t=Date.now()}}
-  Object.assign(t,{b,d,s,e,t:Date.now()});first=t;
- }else if(!g)first=add(D.t,{b,d,s,e});
+  const oh=head(t),solo=!t.g,n=D.n.find(n=>n.k==(t.g||t.id)&&!n.x); // note title follows task title + start time
+  if(g){t.g=t.g||g;g=t.g;if(n){n.k=g;n.t=Date.now()}}
+  Object.assign(t,{b,d,s,e,t:Date.now()});nx?t.ed=addD(d,1):delete t.ed;first=t;
+  if(solo&&n&&head(t)!=oh)retitle(n,head(t));
+ }else if(!g)first=add(D.t,{b,d,s,e,...ex(d)});
  if(g){
   const end=addD(d,7*Math.max(1,Math.min(52,+$('#fw').value||1))-1);
   for(let x=d;x<=end;x=addD(x,1)){
    if(!W.includes((dt(x).getDay()+6)%7)||t&&x==d)continue;
-   const y=add(D.t,{b,g,d:x,s,e});first=first||y;
+   const y=add(D.t,{b,g,d:x,s,e,...ex(x)});first=first||y;
   }
  }
- save();cd=first.d;ti=Math.max(0,TD(cd).indexOf(first));ov=null;O2.hidden=1;
+ save();cd=first.d;ti=Math.max(0,TD(cd).indexOf(first));ov=null;dm=null;O2.hidden=1;
  det?openNote(first):draw();
 }
-O2.onkeydown=ev=>{if(ev.key=='Escape')closeF();else if(ev.key=='Enter'){ev.preventDefault();$('#fk').click()}};
+O2.onkeydown=ev=>{if(ev.key=='Escape'){dm?(dm=null,dial()):closeF()}else if(ev.key=='Enter'&&!ev.target.closest('#dl,.tc')){ev.preventDefault();$('#fk').click()}};
 O2.onclick=ev=>{if(ev.target==O2)closeF()};
 function calKey(ev){
  const k=ev.key=='Backspace'?'Delete':ev.key;
@@ -407,7 +484,7 @@ function calKey(ev){
  const c=C.find(c=>c[0]==k&&c[3]!='n');if(c){ev.preventDefault();c[2]()}
 }
 function setMode(m){leave();mode=m;draw()}
-function swap(){if(mode=='s'){mode=cf?'c':'n';draw()}else setMode(mode=='n'?'c':'n')}
+function swap(){if(mode=='s'){mode=sd=='l'?'c':'n';draw()}else setMode(mode=='n'?'c':'n')}
 function split(s){if(mode=='s'){cf=sd==s;draw()}else{leave();cf=mode=='n';mode='s';sd=s;draw()}}
 $('#V').onclick=ev=>{
  cf=1;
