@@ -29,13 +29,11 @@ main{flex:1;display:grid;grid-template-columns:var(--w0,180px) var(--w1,280px) m
 #ch{display:none;overflow-x:auto;white-space:nowrap;background:var(--pn);border-top:1px solid var(--se);padding:6px 8px;scrollbar-width:none}
 #ch span{display:inline-block;padding:4px 12px;margin-right:6px;border-radius:14px;background:var(--bg);color:var(--dm)}
 #ch .s{background:var(--se);color:var(--ac)}
-#hint{display:none;color:var(--dm);font-size:13px;padding:0 10px;white-space:nowrap}
 .g{position:absolute;top:0;bottom:0;width:8px;margin-left:-4px;cursor:col-resize;z-index:2;touch-action:none}
 .g:first-of-type{left:var(--w0,180px)}
 .g:nth-of-type(2){left:calc(var(--w0,180px) + var(--w1,280px))}
 .g:hover,.g:active{background:var(--se)}
 button,.i,#ch span{transition:box-shadow .15s,text-shadow .15s}
-@media(hover:hover) and (min-width:701px){#hint{display:block}}
 @media(hover:hover){
  .i:not(.h):hover{box-shadow:inset 0 0 14px var(--gl)}
  .p.on .i.s:hover{box-shadow:inset 3px 0 var(--ac),inset 0 0 14px var(--gl)}
@@ -46,10 +44,13 @@ button,.i,#ch span{transition:box-shadow .15s,text-shadow .15s}
 #o[hidden],#o2[hidden]{display:none}
 #o>div,#o2>div{background:var(--pn);width:min(420px,92vw);border-radius:8px;overflow:hidden}
 #q{width:100%;padding:14px;background:none;border:0;border-bottom:1px solid var(--se);color:inherit;font:inherit;outline:0}
-#o b{display:inline-block;min-width:3.5em;color:var(--dm);font-weight:400}
+#o b{display:inline-block;min-width:8.5em;color:var(--dm);font-weight:400}
 input{user-select:text;-webkit-user-select:text}
 #ls{max-height:60vh;overflow:auto}
-#V{display:none;overflow:auto;padding:10px;min-height:0}
+#V{display:none;overflow:auto;padding:10px;min-height:0;background:var(--bg);color:var(--tx);--gl:color-mix(in srgb,var(--ac) 35%,transparent)}
+.hd{padding:10px 14px 2px;color:var(--ac);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.i.td{font-weight:700;color:var(--ac);background:color-mix(in srgb,var(--ac) 12%,transparent)}
+#ch .td{color:var(--ac);font-weight:700}
 #V.f{box-shadow:inset 0 2px 0 var(--ac)}
 main.c{grid-template-columns:minmax(0,1fr)}
 main.c .p,main.c .g,main.sl .g,main.sr .g{display:none}
@@ -81,9 +82,10 @@ main.c #V{display:block}
 #o2>div{padding:14px;display:grid;gap:8px;max-height:86vh;overflow:auto}
 #o2 input{background:var(--bg);color:inherit;border:1px solid var(--se);border-radius:6px;padding:8px;font:inherit;min-width:0}
 #o2 .r{display:flex;gap:6px;align-items:center}
-#o2 .r span{flex:1}
+#o2 .r span{color:var(--dm)}
 #o2 .r input[type=checkbox]{width:18px;height:18px}
-#o2 small{color:var(--dm)}
+#o2 .bt{background:none;border:1px solid var(--se);color:var(--dm);padding:0 2px;height:38px;min-width:0}
+#o2 .bt.on{color:var(--ac);border-color:var(--ac);box-shadow:0 0 10px var(--gl)}
 #o2 button{background:var(--se);border-radius:6px;flex:1}
 @media(hover:hover){.dc:hover,.tk:hover,.wc:hover{box-shadow:inset 0 0 14px var(--gl)}}
 @media(min-width:701px){
@@ -111,7 +113,7 @@ main.c #V{display:block}
 </head>
 <body>
 <header>
- <button id="bk">‹</button><span id="t"></span><span id="hint">Esc · controls</span>
+ <button id="bk">‹</button><span id="t"></span>
  <button id="st"></button><button id="ad">+</button><button id="up">▲</button><button id="dn">▼</button><button id="mn">⋯</button>
 </header>
 <nav id="ch"></nav>
@@ -131,10 +133,12 @@ main.c #V{display:block}
 const CID='58518608488-05qgos3pv2n23l76617aou61f46ihdlf.apps.googleusercontent.com';
 const SCOPE='https://www.googleapis.com/auth/drive.file';
 
-// ---- THEMES: [name,[bg,panel,text,dim,accent,selected]] — add more here ----
+// ---- THEMES: [name, notes colours, calendar colours], each [bg,panel,text,dim,accent,selected] — add more here ----
 const TH=[
- ['Midnight',['#0b1220','#111a2e','#d8dee9','#7b88a1','#88c0d0','#1c2a47']],
- ['Gruvbox',['#2b2118','#342920','#ebdbb2','#a89984','#fabd2f','#4a3a2a']]
+ ['Midnight',['#0b1220','#111a2e','#d8dee9','#7b88a1','#88c0d0','#1c2a47'],['#12203a','#1a2b4d','#e6ecf5','#8fa0bd','#8fd0e6','#26406b']],
+ ['Gruvbox',['#2b2118','#342920','#ebdbb2','#a89984','#fabd2f','#4a3a2a'],['#3a2c1e','#46362a','#f2e5c0','#b8a78c','#ffc83d','#5c4733']],
+ ['Forest',['#0d1a14','#12241b','#d5e5da','#7f9a8a','#7fd1a0','#1d3a2b'],['#15291f','#1c3a2c','#e2f1e7','#8fb09b','#8fe3b0','#2a5a41']],
+ ['Dusk',['#150f1f','#1d1530','#e3dcf0','#8f84a8','#c3a6ff','#2d2150'],['#1f1630','#2a1f45','#efe8fb','#a094bd','#d2b8ff','#3d2d6b']]
 ];
 
 // ---- DATA: {f:[folders],n:[notes]}; item = {id,o:order,t:edited,x:deleted,...} ----
@@ -148,10 +152,11 @@ const esc=s=>s.replace(/[&<>"]/g,c=>'&#'+c.charCodeAt(0)+';');
 let D=JSON.parse(L.d||'{"f":[],"n":[]}'),fi=0,ni=0,pane=0,shown,ov,tok=L.tk,tm,busy,again,hl=history.state&&history.state.p||0;
 if(!D.f.length)D.f.push({id:'d',name:'Notes',o:1,t:1});
 D.t=D.t||[];
+if(!D.f.some(f=>f.id=='todo'))D.f.push({id:'todo',name:'To-Do',o:0,t:1}); // always-first folder for task notes
 let mode='n',sd='r',cf=0,cv='m',cd=iso(new Date()),ti=0,tab; // mode: n notes, c calendar, s split (calendar on side sd, cf = calendar has focus)
 const cal=()=>mode=='c'||mode=='s'&&cf;
 const live=a=>a.filter(x=>!x.x).sort((a,b)=>a.o-b.o);
-const F=()=>live(D.f),N=()=>F()[fi]?live(D.n.filter(n=>n.f==F()[fi].id)):[];
+const F=()=>live(D.f).sort((a,b)=>(b.id=='todo')-(a.id=='todo')),N=()=>F()[fi]?live(D.n.filter(n=>n.f==F()[fi].id&&(n.f!='todo'||vis(n)))):[];
 const cur=()=>pane?N()[ni]:F()[fi];
 const save=()=>{L.d=JSON.stringify(D);clearTimeout(tm);tm=setTimeout(sync,2000)};
 const add=(a,o)=>{const x={id:uid(),o:Date.now(),t:Date.now(),...o};a.push(x);save();return x};
@@ -161,7 +166,7 @@ function draw(){
  if(!F().length)add(D.f,{name:'Notes'});
  const f=F(),n=N();
  fi=Math.max(0,Math.min(fi,f.length-1));ni=Math.max(0,Math.min(ni,N().length-1));
- const row=(a,k,s)=>a.map((x,i)=>`<div class="i${i==s?' s':''}" data-k="${k}" data-i="${i}">${esc(k?(x.b.split('\n')[0]||'Empty note'):x.name)}</div>`).join('');
+ const row=(a,k,s)=>a.map((x,i)=>`<div class="i${i==s?' s':''}${!k&&x.id=='todo'?' td':''}" data-k="${k}" data-i="${i}">${esc(k?(x.b.split('\n')[0]||'Empty note'):x.name)}</div>`).join('');
  $('#P0').innerHTML=row(f,0,fi);
  $('#P1').innerHTML=n.length?row(n,1,ni):'<div class="i h">Tap + (or press n) for a new note</div>';
  [0,1,2].forEach(i=>$('#P'+i).classList.toggle('on',i==pane));
@@ -171,11 +176,12 @@ function draw(){
  $('#t').textContent=mode=='c'?'Calendar':pane?f[fi].name:'Folders';
  const cs=pane==1?f.map(x=>x.name):pane==2?n.map(x=>x.b.split('\n')[0]||'Empty'):[],ci=pane==1?fi:ni;
  $('#ch').className=pane?'v':'';
- $('#ch').innerHTML=cs.map((x,i)=>`<span${i==ci?' class="s"':''} data-i="${i}">${esc(x.length>9?x.slice(0,9)+'…':x)}</span>`).join('');
+ $('#ch').innerHTML=cs.map((x,i)=>`<span class="${i==ci?'s ':''}${pane==1&&f[i].id=='todo'?'td':''}" data-i="${i}">${esc(x.length>9?x.slice(0,9)+'…':x)}</span>`).join('');
  const sc=$('#ch .s');sc&&sc.scrollIntoView({inline:'center',block:'nearest'});
  if(!ov)pane==2&&!cal()?E.focus():E.blur();
  $('main').className=mode=='n'?'n':mode=='c'?'c':'s'+sd;
  document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('s',b.dataset.m==(mode=='c'?'c':'n')));
+ applyTh();
  if(mode!='n')drawC();
  // keep phone back button working: one history entry per level
  if(pane>hl){history.pushState({p:pane},'');hl=pane}else if(pane<hl){const k=hl-pane;hl=pane;history.go(-k)}
@@ -183,15 +189,15 @@ function draw(){
 function leave(){const x=N()[ni];if(pane==2&&x&&!x.b.trim()){x.x=1;x.t=Date.now();save()}}
 function back(){if(cal()){cv=cv=='d'?'w':'m';return drawC()}leave();pane=Math.max(0,pane-1);draw()}
 function move(d){
- const a=pane?N():F(),i=pane?ni:fi,b=a[i+d];if(!b)return;
+ const a=pane?N():F(),i=pane?ni:fi,b=a[i+d];if(!b||a[i].id=='todo'||b.id=='todo')return;
  [a[i].o,b.o]=[b.o,a[i].o];a[i].t=b.t=Date.now();
  pane?ni+=d:fi+=d;save();draw();
 }
 function newNote(){const f=F()[fi];add(D.n,{f:f.id,b:''});ni=N().length-1;pane=2;draw()}
 function newFolder(){ask('Folder name',v=>{add(D.f,{name:v});fi=F().length-1;ni=0;pane=1;draw()})}
-function rename(){const f=F()[fi];ask('Rename folder',v=>{f.name=v;f.t=Date.now();save();draw()},f.name)}
+function rename(){const f=F()[fi];if(f.id=='todo')return;ask('Rename folder',v=>{f.name=v;f.t=Date.now();save();draw()},f.name)}
 function del(){
- const x=cur();if(!x)return;
+ const x=cur();if(!x||x.id=='todo')return;
  ask('Delete? type y',v=>{
   if(v!='y')return;
   x.x=1;x.t=Date.now();
@@ -199,55 +205,69 @@ function del(){
   pane?ni--:fi--;pane=pane?1:0;save();draw();
  });
 }
-function setTh(i){
- L.th=i=(i+TH.length)%TH.length;
- TH[i][1].forEach((c,j)=>document.documentElement.style.setProperty('--'+['bg','pn','tx','dm','ac','se'][j],c));
- $('[name=theme-color]').content=TH[i][1][0];
+const VN=['bg','pn','tx','dm','ac','se'];
+function applyTh(){ // calendar has its own (brighter) palette
+ const t=TH[+L.th||0],c=mode=='c'?t[2]:t[1];
+ c.forEach((x,j)=>document.documentElement.style.setProperty('--'+VN[j],x));
+ t[2].forEach((x,j)=>$('#V').style.setProperty('--'+VN[j],x));
+ $('[name=theme-color]').content=c[0];
 }
+function setTh(i){L.th=(i+TH.length)%TH.length;applyTh()}
 
 // ---- COMMANDS: [key, label, action]. Menu (Esc) lists these. ----
-const C=[ // [key, label, action, scope: n=notes only, c=calendar only, none=both]
+const C=[ // [key, label, action, scope: n=notes, c=calendar, none=general]
+ ['Esc','Show / hide this list',()=>0],
+ ['s','Sync / connect Drive',()=>{L.link=1;sync()}],
+ ['Tab+Enter','Switch Notes / Calendar (closes a split view)',swap],
+ ['Tab+Left','Split view, calendar on left / move focus left',()=>split('l')],
+ ['Tab+Right','Split view, calendar on right / move focus right',()=>split('r')],
+ ...TH.map((t,i)=>['','Theme: '+t[0],()=>setTh(i)]),
+ ['Up / Down','Move through folders / notes',()=>0,'n'],
+ ['Right / Enter','Open folder / note',()=>0,'n'],
+ ['Left','Go back',()=>0,'n'],
  ['n','New note',newNote,'n'],
  ['f','New folder',newFolder,'n'],
  ['r','Rename folder',rename,'n'],
  ['d','Delete selected',del,'n'],
- ['⌥↑','Move up',()=>move(-1),'n'],
- ['⌥↓','Move down',()=>move(1),'n'],
+ ['Alt+Up','Move up in order',()=>move(-1),'n'],
+ ['Alt+Down','Move down in order',()=>move(1),'n'],
  ['t','Next theme',()=>setTh((+L.th||0)+1),'n'],
+ ['Left / Right','Previous / next day',()=>0,'c'],
+ ['Up / Down','Week up / down (pick task in day view)',()=>0,'c'],
+ ['[ and ]','Previous / next month, week or day',()=>0,'c'],
+ ['Enter','Open day / edit task',()=>0,'c'],
  ['n','New task',newTask,'c'],
  ['e','Edit task',editTask,'c'],
+ ['o','Task details (opens its note)',()=>{const x=curT();x&&openNote(x)},'c'],
  ['x','Done / not done',toggleDone,'c'],
  ['Delete','Delete task',delTask,'c'],
- ['⌥↑','Shift task 15 min earlier',()=>shift(-1),'c'],
- ['⌥↓','Shift task 15 min later',()=>shift(1),'c'],
+ ['Alt+Up','Shift task 15 min earlier',()=>shift(-1),'c'],
+ ['Alt+Down','Shift task 15 min later',()=>shift(1),'c'],
  ['m','Month view',()=>setV('m'),'c'],
  ['w','Week view',()=>setV('w'),'c'],
  ['d','Day view',()=>setV('d'),'c'],
- ['t','Jump to today',()=>{cd=iso(new Date());ti=0;drawC()},'c'],
- ['←→','Previous / next day',()=>0,'c'],
- ['↑↓','Week up/down (task in day view)',()=>0,'c'],
- ['[ ]','Previous / next month, week, day',()=>0,'c'],
- ['⏎','Open day / edit task',()=>0,'c'],
- ['s','Sync / connect Drive',()=>{L.link=1;sync()}],
- ['⇥⏎','Notes ⇄ Calendar (hold Tab)',swap],
- ['⇥←','Calendar on the left',()=>split('l')],
- ['⇥→','Calendar on the right',()=>split('r')],
- ...TH.map((t,i)=>['','Theme: '+t[0],()=>setTh(i)])
+ ['t','Jump to today',()=>{cd=iso(new Date());ti=0;drawC()},'c']
 ];
 // ---- Popup: menu (Esc) and text prompts ----
-const items=()=>C.filter(c=>(!c[3]||c[3]==(cal()?'c':'n'))&&c[1].toLowerCase().includes(Q.value.toLowerCase()));
-function ml(){LS.innerHTML=items().map((c,i)=>`<div class="i${i==ov.i?' s':''}" data-c="${i}"><b>${c[0]}</b>${c[1]}</div>`).join('')}
+const order=()=>mode=='c'||mode=='s'&&sd=='l'?['','c','n']:['','n','c']; // general first, then the section on the left
+const items=()=>{const q=Q.value.toLowerCase(),o=order();return C.filter(c=>c[1].toLowerCase().includes(q)).sort((a,b)=>o.indexOf(a[3]||'')-o.indexOf(b[3]||''))};
+function run(c){const k=c[3];if(k){if(mode=='s')cf=k=='c';else mode=k=='c'?'c':'n'}c[2]();draw()}
+function ml(){
+ let g;const H={'':'General',n:'Notes',c:'Calendar'};
+ LS.innerHTML=items().map((c,i)=>{const k=c[3]||'',h=k!=g?(g=k,`<div class="hd">${H[k]}</div>`):'';return h+`<div class="i${i==ov.i?' s':''}" data-c="${i}"><b>${c[0]}</b>${c[1]}</div>`}).join('');
+ const e=LS.querySelector('.s');e&&e.scrollIntoView({block:'nearest'});
+}
 function ask(label,fn,v=''){ov={fn};Q.placeholder=label;Q.value=v;LS.innerHTML='';O.hidden=0;Q.focus()}
 function menu(){ov={m:1,i:0};Q.placeholder='Command…';Q.value='';O.hidden=0;Q.focus();ml()}
 function close(){ov=null;O.hidden=1;Q.blur()}
 Q.onkeydown=ev=>{
  const k=ev.key,n=items().length;
  if(k=='Escape')return close();
- if(k=='Enter'){ev.preventDefault();const m=ov,v=Q.value.trim(),c=items()[m.i];close();return m.fn?v&&m.fn(v):c&&c[2]()}
+ if(k=='Enter'){ev.preventDefault();const m=ov,v=Q.value.trim(),c=items()[m.i];close();return m.fn?v&&m.fn(v):c&&run(c)}
  if(!ov.fn&&n&&(k=='ArrowDown'||k=='ArrowUp')){ev.preventDefault();ov.i=(ov.i+(k=='ArrowDown'?1:-1)+n)%n;ml()}
 };
 Q.oninput=()=>{if(ov.m){ov.i=0;ml()}};
-LS.onclick=ev=>{const el=ev.target.closest('[data-c]');if(el){const c=items()[+el.dataset.c];close();c[2]()}};
+LS.onclick=ev=>{const el=ev.target.closest('[data-c]');if(el){const c=items()[+el.dataset.c];close();run(c)}};
 O.onclick=ev=>{if(ev.target==O)close()};
 
 // ---- Keyboard: Esc = menu. Editing: Esc = back to lists. ----
@@ -329,35 +349,51 @@ function delTask(){const x=curT();if(x)ask('Delete task? type y',v=>{if(v=='y'){
 function newTask(){taskForm()}
 function editTask(){const x=curT();x?taskForm(x):newTask()}
 const O2=$('#o2'),closeF=()=>{ov=null;O2.hidden=1;draw()};
+const now=()=>{const d=new Date();return iso(d)+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+// a task's note lives in the To-Do folder; it shows there while the task is upcoming, or when the calendar is open on its date
+function vis(n){return !n.k||D.t.some(x=>(x.g||x.id)==n.k&&(!x.x&&!x.z&&x.d+x.e>now()||mode!='n'&&x.d==cd))}
+function ensureNote(x){const k=x.g||x.id;return D.n.find(n=>n.k==k&&!n.x)||add(D.n,{f:'todo',k,b:x.b+'\n'})}
+function openNote(x){
+ const n=ensureNote(x);cd=x.d;mode='s';cf=0;fi=0;pane=2;ni=Math.max(0,N().indexOf(n));draw();
+ E.setSelectionRange(E.value.length,E.value.length);
+}
 function taskForm(t){
  ov={form:1};
  $('#o2>div').innerHTML=`<input id="fb" placeholder="Task" value="${t?esc(t.b):''}">
- <div class="r"><input id="fd" type="date" value="${t?t.d:cd}"><input id="fs" type="time" value="${t?t.s:'09:00'}"><input id="fe" type="time" value="${t?t.e:'10:00'}"></div>`+(t?'':`
- <label class="r"><input id="fr" type="checkbox">Repeat on selected days</label>
- <div id="rp" hidden style="display:grid;gap:8px">
-  ${days.map((n,i)=>`<div class="r"><input type="checkbox" data-w="${i}"${i<5?' checked':''}><span>${n}</span><input type="time" data-s="${i}"><input type="time" data-e="${i}"></div>`).join('')}
-  <small>Day times left empty use the time above.</small>
-  <div class="r"><span>Until</span><input id="fu" type="date" value="${addD(cd,55)}"></div>
- </div>`)+`<div class="r"><button id="fx">Cancel</button><button id="fk">Save</button></div>`;
- if(!t)$('#fr').onchange=()=>$('#rp').hidden=!$('#fr').checked;
- $('#fx').onclick=closeF;$('#fk').onclick=()=>saveTask(t);
+ <div class="r"><input id="fd" type="date" value="${t?t.d:cd}"><input id="fs" type="time" value="${t?t.s:'09:00'}"><input id="fe" type="time" value="${t?t.e:'10:00'}"></div>
+ <button class="bt" id="fr">Repeats?</button>
+ <div id="rp" hidden><div class="r">${days.map((n,i)=>`<button class="bt" data-w="${i}">${n}</button>`).join('')}</div>
+  <div class="r" style="margin-top:8px"><span>Repeat for</span><input id="fw" type="number" min="1" max="52" value="1" style="width:70px"><span>weeks</span></div></div>
+ <div class="r"><button id="fx">Cancel</button><button id="fm">Details</button><button id="fk">Save</button></div>`;
+ const B=[...document.querySelectorAll('#rp [data-w]')];
+ B[(dt(t?t.d:cd).getDay()+6)%7].classList.add('on');
+ B.forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+ $('#fr').onclick=()=>{$('#fr').classList.toggle('on');$('#rp').hidden=!$('#fr').classList.contains('on')};
+ $('#fx').onclick=closeF;$('#fk').onclick=()=>saveTask(t);$('#fm').onclick=()=>saveTask(t,1);
  O2.hidden=0;$('#fb').focus();
 }
-function saveTask(t){
+function saveTask(t,det){
  const b=$('#fb').value.trim(),d=$('#fd').value,s=$('#fs').value||'09:00',e=$('#fe').value||s;
- if(!b||!d)return;
- if(t){Object.assign(t,{b,d,s,e,t:Date.now()});save()}
- else if(!$('#fr').checked)add(D.t,{b,d,s,e});
- else{
-  const g=uid(),u=$('#fu').value||'9999',c=addD(d,365),end=u<c?u:c;
+ if(!b||!d)return $('#fb').focus();
+ const W=$('#fr').classList.contains('on')?[...document.querySelectorAll('#rp .on')].map(x=>+x.dataset.w):[];
+ let g=W.length?uid():0,first;
+ if(t){
+  const nt=!t.g&&D.n.find(n=>n.k==t.id&&!n.x); // keep note heading = task heading
+  if(nt&&t.b!=b){const i=nt.b.indexOf('\n');nt.b=b+(i<0?'':nt.b.slice(i));nt.t=Date.now()}
+  if(g){const n=D.n.find(n=>n.k==(t.g||t.id)&&!n.x);t.g=t.g||g;g=t.g;if(n){n.k=g;n.t=Date.now()}}
+  Object.assign(t,{b,d,s,e,t:Date.now()});first=t;
+ }else if(!g)first=add(D.t,{b,d,s,e});
+ if(g){
+  const end=addD(d,7*Math.max(1,Math.min(52,+$('#fw').value||1))-1);
   for(let x=d;x<=end;x=addD(x,1)){
-   const w=(dt(x).getDay()+6)%7;
-   if($(`#rp [data-w="${w}"]`).checked)add(D.t,{b,g,d:x,s:$(`#rp [data-s="${w}"]`).value||s,e:$(`#rp [data-e="${w}"]`).value||e});
+   if(!W.includes((dt(x).getDay()+6)%7)||t&&x==d)continue;
+   const y=add(D.t,{b,g,d:x,s,e});first=first||y;
   }
  }
- cd=d;ti=Math.max(0,TD(d).findIndex(x=>x.b==b));closeF();
+ save();cd=first.d;ti=Math.max(0,TD(cd).indexOf(first));ov=null;O2.hidden=1;
+ det?openNote(first):draw();
 }
-O2.onkeydown=ev=>{if(ev.key=='Escape')closeF();else if(ev.key=='Enter'&&ev.target.tagName=='INPUT'&&ev.target.type!='checkbox'){ev.preventDefault();$('#fk').click()}};
+O2.onkeydown=ev=>{if(ev.key=='Escape')closeF();else if(ev.key=='Enter'){ev.preventDefault();$('#fk').click()}};
 O2.onclick=ev=>{if(ev.target==O2)closeF()};
 function calKey(ev){
  const k=ev.key=='Backspace'?'Delete':ev.key;
@@ -371,8 +407,8 @@ function calKey(ev){
  const c=C.find(c=>c[0]==k&&c[3]!='n');if(c){ev.preventDefault();c[2]()}
 }
 function setMode(m){leave();mode=m;draw()}
-function swap(){if(mode=='s'){cf=!cf;draw()}else setMode(mode=='n'?'c':'n')}
-function split(s){leave();mode=mode=='s'&&sd==s?'n':'s';sd=s;cf=1;draw()}
+function swap(){if(mode=='s'){mode=cf?'c':'n';draw()}else setMode(mode=='n'?'c':'n')}
+function split(s){if(mode=='s'){cf=sd==s;draw()}else{leave();cf=mode=='n';mode='s';sd=s;draw()}}
 $('#V').onclick=ev=>{
  cf=1;
  const b=ev.target.closest('[data-a],[data-v],[data-t],[data-d]');if(!b)return draw();
@@ -437,7 +473,7 @@ document.addEventListener('visibilitychange',()=>document.visibilityState=='visi
 setInterval(sync,6e4);
 
 // ---- Start ----
-setTh(+L.th||0);draw();setSt(L.link?'◐':'○');sync();
+fi=Math.min(1,F().length-1);setTh(+L.th||0);draw();setSt(L.link?'◐':'○');sync();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 navigator.storage&&navigator.storage.persist&&navigator.storage.persist();
 </script>
