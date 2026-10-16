@@ -12,6 +12,16 @@ Newest first. Add a new entry at the top with every commit (copy the template at
 - Clean-up of old deleted items in `notes.json`
 - 12-hour clock option
 
+## v0.7.1 — Deleted tasks leave the To-Do list, swap split sides
+
+**Fixed**
+- A deleted task's note no longer shows in the To-Do folder when you open it from the calendar (Details, or while making a new task). Deleted tasks never show there now, including ones deleted before this update.
+- Deleting a task (this day, or all repeats) now deletes its To-Do note too.
+
+**Changed**
+- `Tab+Left` / `Tab+Right` in split view moves the calendar to that side again, so pressing them back and forth swaps the two sides. The cursor stays on the same pane. A lone `Tab` still switches which side has the cursor.
+- Notes of tasks marked *done* still reappear while the calendar is open on their date (unchanged).
+
 ## v0.7 — To-Do by day, deleting fixes, note title and "last edited"
 
 **Added**

@@ -7,8 +7,8 @@ const C=[ // [key, label, action, scope: n=notes, c=calendar, none=general]
  ['Esc','Show / hide this list',()=>0],
  ['s','Sync / connect Drive',()=>{L.link=1;sync()}],
  ['Tab+Enter','Switch Notes / Calendar (from split view: opens the left side)',swap],
- ['Tab+Left','Split view, calendar on left / move focus left',()=>split('l')],
- ['Tab+Right','Split view, calendar on right / move focus right',()=>split('r')],
+ ['Tab+Left','Split view with the calendar on the left (in a split: swap sides)',()=>split('l')],
+ ['Tab+Right','Split view with the calendar on the right (in a split: swap sides)',()=>split('r')],
  ['Tab','In split view: switch which side has the cursor',()=>0],
  ['Shift+T','Next theme',()=>setTh((+L.th||0)+1)],
  ['Up / Down','Move through folders / notes',()=>0,'n'],
@@ -63,7 +63,7 @@ O.onclick=ev=>{if(ev.target==O)close()};
 // ---- View switching (notes / calendar / split) ----
 function setMode(m){leave();mode=m;draw()}
 function swap(){if(mode=='s'){mode=sd=='l'?'c':'n';draw()}else setMode(mode=='n'?'c':'n')}
-function split(s){if(mode=='s'){cf=sd==s;draw()}else{leave();cf=mode=='n';mode='s';sd=s;draw()}}
+function split(s){if(mode=='s'){sd=s;draw()}else{leave();cf=mode=='n';mode='s';sd=s;draw()}}
 // ---- Keyboard: routes keys to notesKey (notes.js) or calKey (calendar.js) ----
 onkeydown=ev=>{
  const k=ev.key;

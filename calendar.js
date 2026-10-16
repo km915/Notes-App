@@ -39,15 +39,17 @@ function shift(d){
  x.t=Date.now();fixHead(x,oh);save();ti=TD(cd).indexOf(x);draw();
 }
 function toggleDone(){const x=curT();if(x){x.z=x.z?0:1;x.t=Date.now();save();draw()}}
+function gone(ts){ // delete tasks and their To-Do notes
+ const T=Date.now();ts.forEach(y=>{y.x=1;y.t=T});
+ D.n.forEach(n=>{if(!n.x&&ts.some(y=>y.id==n.k)){n.x=1;n.t=T}});
+ save();draw();
+}
 function delTask(){
  const x=curT();if(!x)return;
  const all=x.g?D.t.filter(y=>!y.x&&y.g==x.g):[];
- if(all.length<2)return ask(`Delete task “${x.b}” (${x.s})? type y`,v=>{if(v=='y'){x.x=1;x.t=Date.now();save();draw()}});
+ if(all.length<2)return ask(`Delete task “${x.b}” (${x.s})? type y`,v=>{if(v=='y')gone([x])});
  ask(`Delete “${x.b}”: y = this day only, a = all ${all.length} repeats`,v=>{
-  v=v.toLowerCase();if(v!='y'&&v!='a')return;
-  const T=Date.now();(v=='a'?all:[x]).forEach(y=>{y.x=1;y.t=T});
-  if(v=='a')D.n.forEach(n=>{if(!n.x&&all.some(y=>y.id==n.k)){n.x=1;n.t=T}});
-  save();draw();
+  v=v.toLowerCase();if(v=='y')gone([x]);else if(v=='a')gone(all);
  });
 }
 function newTask(){taskForm()}
@@ -57,11 +59,11 @@ const now=()=>{const d=new Date();return iso(d)+String(d.getHours()).padStart(2,
 // ---- To-Do folder: one note per task (per day), listed day by day for today + the next 6 days ----
 const wnd=()=>{const a=iso(new Date());return [a,addD(a,6)]};
 const taskOf=n=>n.k&&D.t.find(x=>x.id==n.k);
-// shown in To-Do: your own notes; task notes for the next 7 days while the task is open (not done / deleted),
-// or any task note while the calendar is open on its date
+// shown in To-Do: your own notes; task notes for the next 7 days while the task is open (not done),
+// or a done task's note while the calendar is open on its date. Deleted tasks never show.
 function vis(n){
- if(!n.k)return true;const x=taskOf(n);if(!x)return false;const [a,b]=wnd();
- return !x.x&&!x.z&&x.d>=a&&x.d<=b||mode!='n'&&x.d==cd;
+ if(!n.k)return true;const x=taskOf(n);if(!x||x.x)return false;const [a,b]=wnd();
+ return !x.z&&x.d>=a&&x.d<=b||mode!='n'&&x.d==cd;
 }
 function todoList(){
  const k=n=>{const x=taskOf(n);return x?x.d+x.s:'9'+n.o};
