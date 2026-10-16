@@ -9,6 +9,7 @@ const C=[ // [key, label, action, scope: n=notes, c=calendar, none=general]
  ['Tab+Enter','Switch Notes / Calendar (from split view: opens the left side)',swap],
  ['Tab+Left','Split view, calendar on left / move focus left',()=>split('l')],
  ['Tab+Right','Split view, calendar on right / move focus right',()=>split('r')],
+ ['Tab','In split view: switch which side has the cursor',()=>0],
  ['Shift+T','Next theme',()=>setTh((+L.th||0)+1)],
  ['Up / Down','Move through folders / notes',()=>0,'n'],
  ['Right / Enter','Open folder / note',()=>0,'n'],
@@ -16,7 +17,7 @@ const C=[ // [key, label, action, scope: n=notes, c=calendar, none=general]
  ['n','New note',newNote,'n'],
  ['f','New folder',newFolder,'n'],
  ['r','Rename folder',rename,'n'],
- ['d','Delete selected',del,'n'],
+ ['d','Delete selected folder / note (asks first)',del,'n'],
  ['Alt+Up','Move up in order',()=>move(-1),'n'],
  ['Alt+Down','Move down in order',()=>move(1),'n'],
  ['Left / Right','Previous / next day',()=>0,'c'],
@@ -33,6 +34,7 @@ const C=[ // [key, label, action, scope: n=notes, c=calendar, none=general]
  ['m','Month view',()=>setV('m'),'c'],
  ['w','Week view',()=>setV('w'),'c'],
  ['d','Day view',()=>setV('d'),'c'],
+ ['d','In day view: delete the selected task',()=>0,'c'],
  ['t','Jump to today',()=>{cd=iso(new Date());ti=0;drawC()},'c'],
  ...TH.map((t,i)=>['','Theme: '+t[0],()=>setTh(i),'th']) // always last
 ];
@@ -66,9 +68,9 @@ function split(s){if(mode=='s'){cf=sd==s;draw()}else{leave();cf=mode=='n';mode='
 onkeydown=ev=>{
  const k=ev.key;
  if(ov||ev.target==Q)return;
- if(k=='Tab'){ev.preventDefault();tab=1;return}
- if(k=='T'&&ev.shiftKey&&!ev.ctrlKey&&!ev.metaKey&&!ev.altKey&&ev.target!=E&&!tab){ev.preventDefault();return setTh((+L.th||0)+1)}
- if(tab){ev.preventDefault();if(!ev.repeat){if(k=='Enter')swap();if(k=='ArrowLeft')split('l');if(k=='ArrowRight')split('r')}return}
+ if(k=='Tab'){ev.preventDefault();if(!tab)tab=1;return} // tab: 1 = pressed alone, 2 = used in a Tab+key shortcut
+ if(k=='T'&&ev.shiftKey&&!ev.ctrlKey&&!ev.metaKey&&!ev.altKey&&ev.target!=E&&ev.target!=ET&&!tab){ev.preventDefault();return setTh((+L.th||0)+1)}
+ if(tab){ev.preventDefault();tab=2;if(!ev.repeat){if(k=='Enter')swap();if(k=='ArrowLeft')split('l');if(k=='ArrowRight')split('r')}return}
  if(cal())return calKey(ev);
  notesKey(ev);
 };
@@ -79,7 +81,7 @@ $('#ad').onclick=()=>cal()?newTask():pane?newNote():newFolder();
 $('#up').onclick=()=>cal()?shift(-1):move(-1);$('#dn').onclick=()=>cal()?shift(1):move(1);
 $('#st').onclick=()=>{L.link=1;sync()};
 document.querySelectorAll('#nv button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
-addEventListener('keyup',ev=>{if(ev.key=='Tab')tab=0});
+addEventListener('keyup',ev=>{if(ev.key=='Tab'){if(tab==1&&mode=='s'&&!ov){cf=!cf;draw()} tab=0}}); // Tab alone in split view = switch side
 addEventListener('blur',()=>tab=0);
 
 // ---- Start ----

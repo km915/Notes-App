@@ -15,7 +15,7 @@ const TH=[
 ];
 
 // ---- DATA: {f:[folders],n:[notes]}; item = {id,o:order,t:edited,x:deleted,...} ----
-const $=s=>document.querySelector(s),L=localStorage,E=$('#E'),Q=$('#q'),O=$('#o'),LS=$('#ls');
+const $=s=>document.querySelector(s),L=localStorage,E=$('#E'),ET=$('#ET'),Q=$('#q'),O=$('#o'),LS=$('#ls');
 const iso=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
 const dt=s=>new Date(s+'T00:00');
 const addD=(s,n)=>{const x=dt(s);x.setDate(x.getDate()+n);return iso(x)};
@@ -29,10 +29,11 @@ if(!D.f.some(f=>f.id=='todo'))D.f.push({id:'todo',name:'To-Do',o:0,t:1}); // alw
 let mode='n',sd='r',cf=0,cv='m',cd=iso(new Date()),ti=0,tab; // mode: n notes, c calendar, s split (calendar on side sd, cf = calendar has focus)
 const cal=()=>mode=='c'||mode=='s'&&cf;
 const live=a=>a.filter(x=>!x.x).sort((a,b)=>a.o-b.o);
-const F=()=>live(D.f).sort((a,b)=>(b.id=='todo')-(a.id=='todo')),N=()=>F()[fi]?live(D.n.filter(n=>n.f==F()[fi].id&&(n.f!='todo'||vis(n)))):[];
+const F=()=>live(D.f).sort((a,b)=>(b.id=='todo')-(a.id=='todo')),N=()=>F()[fi]?F()[fi].id=='todo'?todoList():live(D.n.filter(n=>n.f==F()[fi].id)):[]; // To-Do notes come from calendar.js (sorted by day)
 const cur=()=>pane?N()[ni]:F()[fi];
 const save=()=>{L.d=JSON.stringify(D);clearTimeout(tm);tm=setTimeout(sync,2000)};
 const add=(a,o)=>{const x={id:uid(),o:Date.now(),t:Date.now(),...o};a.push(x);save();return x};
+function toast(m){const t=$('#ts');t.textContent=m;t.hidden=0;clearTimeout(t.h);t.h=setTimeout(()=>t.hidden=1,2200)} // small message at the bottom
 
 // ---- Applying the theme (calendar uses its own, brighter palette) ----
 const VN=['bg','pn','tx','dm','ac','se'];

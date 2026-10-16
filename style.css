@@ -12,10 +12,18 @@ button{background:none;border:0;color:var(--ac);font:inherit;min-width:44px;heig
 main{flex:1;display:grid;grid-template-columns:var(--w0,180px) var(--w1,280px) minmax(0,1fr);min-height:0;position:relative}
 .p{display:flex;flex-direction:column;overflow:auto;border-right:1px solid var(--se);min-height:0}
 .i{padding:10px 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-.i.s{background:var(--se)}
-.p.on .i.s{color:var(--ac);box-shadow:inset 3px 0 var(--ac)}
+.i.s{background:color-mix(in srgb,var(--se) 45%,transparent)} /* selected row in the pane that is NOT active: dim */
+.p.on .i.s{background:var(--se);color:var(--ac);box-shadow:inset 3px 0 var(--ac)} /* active pane: bright + accent bar */
+#ls .i.s{background:var(--se)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.dh{padding:10px 14px 2px;color:var(--ac);font-size:13px;font-weight:600}
+#ts{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:var(--pn);color:var(--tx);border:1px solid var(--se);border-radius:8px;padding:8px 14px;font-size:14px;z-index:9;box-shadow:0 0 14px var(--gl)}
+#ts[hidden]{display:none}
 .h{color:var(--dm);cursor:default}
-#E{user-select:text;-webkit-user-select:text;flex:1;width:100%;background:none;color:inherit;border:0;outline:0;resize:none;padding:14px;font:inherit}
+#E,#ET{user-select:text;-webkit-user-select:text;width:100%;background:none;color:inherit;border:0;outline:0;resize:none;font:inherit}
+#E{flex:1;padding:6px 14px 14px}
+#ET{flex:none;padding:2px 14px 0;font-size:1.35em;font-weight:700;line-height:1.3;overflow:hidden}
+#le{text-align:right;font-size:11px;color:var(--dm);opacity:.7;padding:6px 14px 0;min-height:1.6em}
 #ch{display:none;overflow-x:auto;white-space:nowrap;background:var(--pn);border-top:1px solid var(--se);padding:6px 8px;scrollbar-width:none}
 #ch span{display:inline-block;padding:4px 12px;margin-right:6px;border-radius:14px;background:var(--bg);color:var(--dm)}
 #ch .s{background:var(--se);color:var(--ac)}

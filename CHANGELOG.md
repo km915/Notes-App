@@ -12,6 +12,28 @@ Newest first. Add a new entry at the top with every commit (copy the template at
 - Clean-up of old deleted items in `notes.json`
 - 12-hour clock option
 
+## v0.7 — To-Do by day, deleting fixes, note title and "last edited"
+
+**Added**
+- **To-Do folder is now day by day**: sections for today and the next 6 days (for example `Fri (16 Oct) · today`, `Sat (17 Oct)` …), each listing that day's tasks. Every task gets a note automatically (heading `HH:MM title`, empty below) whether or not you add details. A repeating task has one note per day.
+- Tasks that are done or deleted, and tasks from earlier days, leave the To-Do list. They show up again while the calendar is open on their date. Tasks later today stay listed even after their time has passed.
+- **Note title**: the first line of a note is its own bold, larger title box. `Enter` in the title jumps to the text; `Backspace` or `Up` at the start of the text jumps back to the title.
+- **Last edited** stamp at the top right of every note (`last edited: 19:46 - 15 Oct`), small, faint and read-only. It changes only when the note's content changes.
+- `d` in the calendar's day view deletes the selected task (in month and week view it still opens the day view).
+- `Tab` pressed on its own in split view switches which side has the cursor.
+- Small message bar for things that can't be done (for example deleting the To-Do folder).
+
+**Changed**
+- Delete prompts now say exactly what will go: `Delete folder "Work" and its 3 notes? type y`, `Delete note "..."? type y`, `Delete task "..."? type y`.
+- The selected row in the pane you are not working in is dimmed; the active pane has a bright row with an accent bar, so it is clear whether `d` acts on a folder or a note.
+- Task form buttons are ordered **Save, Details, Cancel**. `Enter` on a focused button presses that button (Details now works from the keyboard); `Enter` in a field still saves. Focused buttons and fields get a visible outline.
+- Marking a task done or shifting its time refreshes the notes list straight away.
+
+**Fixed**
+- Pressing `Up` or `Down` one time too many in the folder list emptied the notes list. The selection is now clamped before the lists are read.
+- `Enter` in the task form could save the task and then reopen it in day view; `Esc` could open the shortcuts menu after closing the form.
+- Older notes made for a whole repeating series are moved onto the first day of that series.
+
 ## v0.6 — Modularisation (refactor, no behaviour change)
 
 The single 560-line `index.html` is now split by job. The code itself is unchanged; it was only moved, and nothing was rewritten.

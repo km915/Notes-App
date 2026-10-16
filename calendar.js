@@ -29,24 +29,24 @@ const setV=v=>{cv=v;drawC()};
 let ft,dm; // task form: ft={s,e,n:end is next day,et:end picked by hand}, dm=open dial {w:'s'|'e',st:'h'|'m'}
 const pad=n=>String(n).padStart(2,'0'),tmin=h=>+h.slice(0,2)*60+ +h.slice(3),tstr=n=>pad(n/60|0)+':'+pad(n%60);
 const head=x=>x.s+' '+x.b; // a task's note starts with 'HH:MM title'
-function retitle(n,h){const i=n.b.indexOf('\n');n.b=h+(i<0?'':n.b.slice(i));n.t=Date.now()}
-function fixHead(x,oh){if(x.g||head(x)==oh)return;const n=D.n.find(n=>n.k==x.id&&!n.x);n&&retitle(n,head(x))}
+function retitle(n,h){const i=n.b.indexOf('\n');n.b=h+(i<0?'':n.b.slice(i));n.t=n.u=Date.now()}
+function fixHead(x,oh){if(head(x)==oh)return;const n=D.n.find(n=>n.k==x.id&&!n.x);n&&retitle(n,head(x))}
 function shift(d){
  const x=curT();if(!x||cv!='d')return;
  const a=tmin(x.s),b=tmin(x.e)+(x.ed?1440:0),oh=head(x),
  k=Math.max(-a,Math.min(x.ed?Math.min(1439-a,2879-b):1439-b,d*15)),b2=b+k;
  x.s=tstr(a+k);x.e=tstr(b2%1440);b2>=1440?x.ed=addD(x.d,1):delete x.ed;
- x.t=Date.now();fixHead(x,oh);save();ti=TD(cd).indexOf(x);drawC();
+ x.t=Date.now();fixHead(x,oh);save();ti=TD(cd).indexOf(x);draw();
 }
-function toggleDone(){const x=curT();if(x){x.z=x.z?0:1;x.t=Date.now();save();drawC()}}
+function toggleDone(){const x=curT();if(x){x.z=x.z?0:1;x.t=Date.now();save();draw()}}
 function delTask(){
  const x=curT();if(!x)return;
  const all=x.g?D.t.filter(y=>!y.x&&y.g==x.g):[];
- if(all.length<2)return ask('Delete task? type y',v=>{if(v=='y'){x.x=1;x.t=Date.now();save();draw()}});
- ask(`Delete: y = this day only, a = all ${all.length} repeats`,v=>{
+ if(all.length<2)return ask(`Delete task “${x.b}” (${x.s})? type y`,v=>{if(v=='y'){x.x=1;x.t=Date.now();save();draw()}});
+ ask(`Delete “${x.b}”: y = this day only, a = all ${all.length} repeats`,v=>{
   v=v.toLowerCase();if(v!='y'&&v!='a')return;
   const T=Date.now();(v=='a'?all:[x]).forEach(y=>{y.x=1;y.t=T});
-  if(v=='a'){const n=D.n.find(n=>n.k==x.g&&!n.x);if(n){n.x=1;n.t=T}}
+  if(v=='a')D.n.forEach(n=>{if(!n.x&&all.some(y=>y.id==n.k)){n.x=1;n.t=T}});
   save();draw();
  });
 }
@@ -54,12 +54,50 @@ function newTask(){taskForm()}
 function editTask(){const x=curT();x?taskForm(x):newTask()}
 const O2=$('#o2'),closeF=()=>{ov=null;dm=null;O2.hidden=1;draw()};
 const now=()=>{const d=new Date();return iso(d)+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
-// a task's note lives in the To-Do folder; it shows there while the task is upcoming, or when the calendar is open on its date
-function vis(n){return !n.k||D.t.some(x=>(x.g||x.id)==n.k&&(!x.x&&!x.z&&(x.ed||x.d)+x.e>now()||mode!='n'&&x.d==cd))}
-function ensureNote(x){const k=x.g||x.id;return D.n.find(n=>n.k==k&&!n.x)||add(D.n,{f:'todo',k,b:head(x)+'\n'})}
+// ---- To-Do folder: one note per task (per day), listed day by day for today + the next 6 days ----
+const wnd=()=>{const a=iso(new Date());return [a,addD(a,6)]};
+const taskOf=n=>n.k&&D.t.find(x=>x.id==n.k);
+// shown in To-Do: your own notes; task notes for the next 7 days while the task is open (not done / deleted),
+// or any task note while the calendar is open on its date
+function vis(n){
+ if(!n.k)return true;const x=taskOf(n);if(!x)return false;const [a,b]=wnd();
+ return !x.x&&!x.z&&x.d>=a&&x.d<=b||mode!='n'&&x.d==cd;
+}
+function todoList(){
+ const k=n=>{const x=taskOf(n);return x?x.d+x.s:'9'+n.o};
+ return D.n.filter(n=>n.f=='todo'&&!n.x&&vis(n)).sort((p,q)=>k(p)<k(q)?-1:1);
+}
+function todoRows(n,s,rowH){ // day headers + the notes of that day
+ const [a]=wnd(),set=new Set(Array.from({length:7},(_,i)=>addD(a,i)));
+ n.forEach(x=>{const t=taskOf(x);t&&set.add(t.d)});
+ const lab=d=>{const x=dt(d);return days[(x.getDay()+6)%7]+' ('+x.getDate()+' '+x.toLocaleDateString(undefined,{month:'short'})+')'+(d==a?' · today':'')};
+ let h='';
+ [...set].sort().forEach(d=>{h+=`<div class="dh">${lab(d)}</div>`;n.forEach((x,i)=>{const t=taskOf(x);if(t&&t.d==d)h+=rowH(x,1,i,s)})});
+ const own=n.map((x,i)=>[x,i]).filter(([x])=>!taskOf(x));
+ return h+(own.length?'<div class="dh">Other</div>'+own.map(([x,i])=>rowH(x,1,i,s)).join(''):'');
+}
+function mkNote(x){ // fixed id per task, so two devices never create two notes for the same task
+ const n={id:'t_'+x.id,f:'todo',k:x.id,o:Date.now(),t:Date.now(),u:Date.now(),b:head(x)+'\n'};D.n.push(n);save();return n;
+}
+function syncTodo(){
+ const [a,b]=wnd();let c=0;
+ D.n.forEach(n=>{ // notes made for a whole series (older versions): move to the series' first day
+  if(n.k&&!n.x&&!D.t.some(x=>x.id==n.k)){
+   const y=D.t.filter(x=>x.g==n.k&&!x.x).sort((p,q)=>p.d<q.d?-1:1)[0];
+   if(y&&!D.n.some(m=>m.k==y.id)){n.k=y.id;n.t=Date.now();c=1}
+  }
+ });
+ D.t.forEach(x=>{if(!x.x&&x.d>=a&&x.d<=b&&!D.n.some(n=>n.k==x.id))mkNote(x)});
+ c&&save();
+}
+function ensureNote(x){
+ const n=D.n.find(n=>n.k==x.id);
+ if(n&&n.x){delete n.x;n.t=Date.now()}
+ return n||mkNote(x);
+}
 function openNote(x){
  const n=ensureNote(x);cd=x.d;mode='s';sd='l';cf=0;fi=0;pane=2;ni=Math.max(0,N().indexOf(n));draw();
- E.setSelectionRange(E.value.length,E.value.length);
+ E.focus();E.setSelectionRange(E.value.length,E.value.length);
 }
 const ndm=()=>tmin(ft.s)>=1425; // start 23:45 or later: every end option falls on the next day
 const okT=(h,q)=>dm.w=='s'||ndm()||h*60+q>tmin(ft.s); // end must come after start
@@ -110,7 +148,7 @@ function taskForm(t){
  <button class="bt" id="fr">Repeats?</button>
  <div id="rp" hidden><div class="r">${days.map((n,i)=>`<button class="bt" data-w="${i}">${n}</button>`).join('')}</div>
   <div class="r" style="margin-top:8px"><span>Repeat for</span><input id="fw" type="number" min="1" max="52" value="1" style="width:70px"><span>weeks</span></div></div>
- <div class="r"><button id="fx">Cancel</button><button id="fm">Details</button><button id="fk">Save</button></div>`;
+ <div class="r"><button id="fk">Save</button><button id="fm">Details</button><button id="fx">Cancel</button></div>`;
  const B=[...document.querySelectorAll('#rp [data-w]')];
  B[(dt(t?t.d:cd).getDay()+6)%7].classList.add('on');
  B.forEach(b=>b.onclick=()=>b.classList.toggle('on'));
@@ -129,10 +167,10 @@ function saveTask(t,det){
  const W=$('#fr').classList.contains('on')?[...document.querySelectorAll('#rp .on')].map(x=>+x.dataset.w):[];
  let g=W.length?uid():0,first;
  if(t){
-  const oh=head(t),solo=!t.g,n=D.n.find(n=>n.k==(t.g||t.id)&&!n.x); // note title follows task title + start time
-  if(g){t.g=t.g||g;g=t.g;if(n){n.k=g;n.t=Date.now()}}
+  const oh=head(t),n=D.n.find(n=>n.k==t.id&&!n.x); // note title follows task title + start time
+  if(g){t.g=t.g||g;g=t.g}
   Object.assign(t,{b,d,s,e,t:Date.now()});nx?t.ed=addD(d,1):delete t.ed;first=t;
-  if(solo&&n&&head(t)!=oh)retitle(n,head(t));
+  if(n&&head(t)!=oh)retitle(n,head(t));
  }else if(!g)first=add(D.t,{b,d,s,e,...ex(d)});
  if(g){
   const end=addD(d,7*Math.max(1,Math.min(52,+$('#fw').value||1))-1);
@@ -144,7 +182,7 @@ function saveTask(t,det){
  save();cd=first.d;ti=Math.max(0,TD(cd).indexOf(first));ov=null;dm=null;O2.hidden=1;
  det?openNote(first):draw();
 }
-O2.onkeydown=ev=>{if(ev.key=='Escape'){dm?(dm=null,dial()):closeF()}else if(ev.key=='Enter'&&!ev.target.closest('#dl,.tc')){ev.preventDefault();$('#fk').click()}};
+O2.onkeydown=ev=>{if(ev.key=='Escape'){ev.stopPropagation();dm?(dm=null,dial()):closeF()}else if(ev.key=='Enter'&&ev.target.tagName!='BUTTON'){ev.stopPropagation();ev.preventDefault();$('#fk').click()}}; // Enter on a button presses that button; in a field it saves
 O2.onclick=ev=>{if(ev.target==O2)closeF()};
 function calKey(ev){
  const k=ev.key=='Backspace'?'Delete':ev.key;
@@ -155,6 +193,7 @@ function calKey(ev){
  if(k=='ArrowUp'||k=='ArrowDown'){ev.preventDefault();const u=k=='ArrowUp'?-1:1;return cv=='d'?(ti+=u,drawC()):go(7*u)}
  if(k=='['||k==']'){ev.preventDefault();return go(k=='['?-1:1,1)}
  if(k=='Enter'){ev.preventDefault();return cv=='d'?editTask():setV('d')}
+ if(k=='d'&&cv=='d'&&curT()){ev.preventDefault();return delTask()} // in day view with a task selected, d deletes it
  const c=C.find(c=>c[0]==k&&c[3]!='n');if(c){ev.preventDefault();c[2]()}
 }
 // ---- Calendar clicks / swipes ----
