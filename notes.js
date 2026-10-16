@@ -48,6 +48,8 @@ function rename(){const f=F()[fi];if(f.id=='todo')return toast("The To-Do folder
 function del(){
  const x=cur();if(!x)return;
  if(x.id=='todo')return toast("The To-Do folder can't be deleted");
+ const tk=pane&&x.k&&D.t.find(y=>y.id==x.k&&!y.x);
+ if(tk)return delTaskOf(tk,matchMedia('(hover:none)').matches); // a To-Do note: deleting it deletes its task too
  const nn=pane?0:D.n.filter(n=>n.f==x.id&&!n.x).length; // say exactly what will go
  ask(pane?`Delete note “${x.b.split('\n')[0]||'Empty note'}”? type y`:`Delete folder “${x.name}”${nn?` and its ${nn} note${nn>1?'s':''}`:''}? type y`,v=>{
   if(v!='y')return;

@@ -40,13 +40,17 @@ function shift(d){
 }
 function toggleDone(){const x=curT();if(x){x.z=x.z?0:1;x.t=Date.now();save();draw()}}
 function gone(ts){ // delete tasks and their To-Do notes
- const T=Date.now();ts.forEach(y=>{y.x=1;y.t=T});
+ const T=Date.now(),sel=pane?N()[ni]:null; // sel = the note highlighted in the list
+ ts.forEach(y=>{y.x=1;y.t=T});
  D.n.forEach(n=>{if(!n.x&&ts.some(y=>y.id==n.k)){n.x=1;n.t=T}});
+ if(sel&&sel.x){pane=Math.min(pane,1);ni=Math.max(0,ni-1)}
  save();draw();
 }
-function delTask(){
- const x=curT();if(!x)return;
+function delTask(tap){delTaskOf(curT(),tap===1)}
+function delTaskOf(x,tap){ // tap = phone: pick from a list instead of typing
+ if(!x)return;
  const all=x.g?D.t.filter(y=>!y.x&&y.g==x.g):[];
+ if(tap)return sheet(`Delete “${x.b}”?`,[...(all.length>1?[['Delete this day only',()=>gone([x])],[`Delete all ${all.length} repeats`,()=>gone(all)]]:[['Delete',()=>gone([x])]]),['Cancel',()=>0]]);
  if(all.length<2)return ask(`Delete task “${x.b}” (${x.s})? type y`,v=>{if(v=='y')gone([x])});
  ask(`Delete “${x.b}”: y = this day only, a = all ${all.length} repeats`,v=>{
   v=v.toLowerCase();if(v=='y')gone([x]);else if(v=='a')gone(all);
@@ -208,6 +212,17 @@ $('#V').onclick=ev=>{
  else if(a.t){const x=D.t.find(y=>y.id==a.t);cd=x.d;ti=TD(cd).indexOf(x);drawC()}
  else{const same=cd==a.d;cd=a.d;ti=0;if(cv!='d'&&(same||matchMedia('(hover:none)').matches))cv='d';drawC()}
 };
+// long press (phone) or right click (laptop) on a task: Edit / Delete
+let lp,lx,ly,lpAt=0;
+function taskMenu(el){
+ const x=D.t.find(y=>y.id==el.dataset.t);if(!x||Date.now()-lpAt<800)return;lpAt=Date.now();
+ cf=1;cd=x.d;ti=TD(cd).indexOf(x);drawC();
+ sheet(`${x.s} ${x.b}`,[['Edit task',editTask],['Delete task',()=>delTask(1)]]);
+}
+$('#V').onpointerdown=ev=>{clearTimeout(lp);const el=ev.target.closest('[data-t]');if(!el||ev.pointerType=='mouse')return;lx=ev.clientX;ly=ev.clientY;lp=setTimeout(()=>taskMenu(el),500)};
+$('#V').onpointermove=ev=>{if(Math.hypot(ev.clientX-lx,ev.clientY-ly)>10)clearTimeout(lp)};
+$('#V').onpointerup=$('#V').onpointercancel=()=>clearTimeout(lp);
+$('#V').oncontextmenu=ev=>{ev.preventDefault();const el=ev.target.closest('[data-t]');el&&taskMenu(el)};
 $('#V').ondblclick=ev=>ev.target.closest('[data-t]')?editTask():ev.target.closest('.dc,.wc')&&newTask();
 let sx;$('#V').ontouchstart=e=>sx=e.touches[0].clientX;
 $('#V').ontouchend=e=>{const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>70)go(d<0?1:-1,1)};

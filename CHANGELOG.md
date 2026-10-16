@@ -12,6 +12,16 @@ Newest first. Add a new entry at the top with every commit (copy the template at
 - Clean-up of old deleted items in `notes.json`
 - 12-hour clock option
 
+## v0.7.2 — Long-press task menu, deleting a To-Do note deletes its task
+
+**Added**
+- **Long-press a task** (phone), or right-click it (laptop), in the day or week view: a small menu with **Edit task** and **Delete task**.
+- Deleting from that menu on a phone uses buttons instead of typing: *Delete* / *Cancel*, or for a repeating task *Delete this day only* / *Delete all N repeats* / *Cancel*.
+
+**Changed**
+- Deleting a note in the To-Do folder now deletes its task as well (and asks "this day or all repeats" if the task repeats). On a phone it asks with buttons.
+- `Esc` closes the long-press menu; a finger lifting after the long press no longer closes it by accident.
+
 ## v0.7.1 — Deleted tasks leave the To-Do list, swap split sides
 
 **Fixed**

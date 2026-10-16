@@ -49,7 +49,11 @@ function ml(){
 }
 function ask(label,fn,v=''){ov={fn};Q.placeholder=label;Q.value=v;LS.innerHTML='';O.hidden=0;Q.focus()}
 function menu(){ov={m:1,i:0};Q.placeholder='Command…';Q.value='';O.hidden=0;Q.focus();ml()}
-function close(){ov=null;O.hidden=1;Q.blur()}
+function sheet(label,opts){ // small list of choices (phone long-press menu, delete choices); opts = [[label,action],...]
+ ov={sh:opts,t:Date.now()};Q.value='';O.classList.add('sh');
+ LS.innerHTML=`<div class="hd">${esc(label)}</div>`+opts.map((o,i)=>`<div class="i" data-o="${i}">${o[0]}</div>`).join('');O.hidden=0;
+}
+function close(){ov=null;O.hidden=1;O.classList.remove('sh');Q.blur()}
 Q.onkeydown=ev=>{
  const k=ev.key,n=items().length;
  if(k=='Escape')return close();
@@ -57,8 +61,11 @@ Q.onkeydown=ev=>{
  if(!ov.fn&&n&&(k=='ArrowDown'||k=='ArrowUp')){ev.preventDefault();ov.i=(ov.i+(k=='ArrowDown'?1:-1)+n)%n;ml()}
 };
 Q.oninput=()=>{if(ov.m){ov.i=0;ml()}};
-LS.onclick=ev=>{const el=ev.target.closest('[data-c]');if(el){const c=items()[+el.dataset.c];close();run(c)}};
-O.onclick=ev=>{if(ev.target==O)close()};
+LS.onclick=ev=>{
+ const o=ev.target.closest('[data-o]');if(o&&ov&&ov.sh){const a=ov.sh[+o.dataset.o][1];close();return a()}
+ const el=ev.target.closest('[data-c]');if(el){const c=items()[+el.dataset.c];close();run(c)}
+};
+O.onclick=ev=>{if(ev.target==O&&!(ov&&ov.sh&&Date.now()-ov.t<500))close()}; // (a finger lifting after a long press must not close the menu)
 
 // ---- View switching (notes / calendar / split) ----
 function setMode(m){leave();mode=m;draw()}
@@ -67,6 +74,7 @@ function split(s){if(mode=='s'){sd=s;draw()}else{leave();cf=mode=='n';mode='s';s
 // ---- Keyboard: routes keys to notesKey (notes.js) or calKey (calendar.js) ----
 onkeydown=ev=>{
  const k=ev.key;
+ if(ov&&ov.sh){if(k=='Escape')close();return}
  if(ov||ev.target==Q)return;
  if(k=='Tab'){ev.preventDefault();if(!tab)tab=1;return} // tab: 1 = pressed alone, 2 = used in a Tab+key shortcut
  if(k=='T'&&ev.shiftKey&&!ev.ctrlKey&&!ev.metaKey&&!ev.altKey&&ev.target!=E&&ev.target!=ET&&!tab){ev.preventDefault();return setTh((+L.th||0)+1)}

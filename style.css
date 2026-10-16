@@ -47,6 +47,8 @@ button,.i,#ch span{transition:box-shadow .15s,text-shadow .15s}
 #o b{display:inline-block;min-width:8.5em;color:var(--dm);font-weight:400}
 input{user-select:text;-webkit-user-select:text}
 #ls{max-height:60vh;overflow:auto}
+#o.sh #q{display:none} /* option list (long-press menu) has no text box */
+#V{-webkit-touch-callout:none}
 /* ===== To-Do folder, calendar views ===== */
 #V{display:none;overflow:auto;padding:10px;min-height:0;background:var(--bg);color:var(--tx);--gl:color-mix(in srgb,var(--ac) 35%,transparent)}
 .hd{padding:10px 14px 2px;color:var(--ac);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
