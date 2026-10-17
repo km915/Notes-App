@@ -47,13 +47,13 @@ function ml(){
  LS.innerHTML=items().map((c,i)=>{const k=c[3]||'',h=k!=g?(g=k,`<div class="hd">${H[k]}</div>`):'';return h+`<div class="i${i==ov.i?' s':''}" data-c="${i}"><b>${c[0]}</b>${c[1]}</div>`}).join('');
  const e=LS.querySelector('.s');e&&e.scrollIntoView({block:'nearest'});
 }
-function ask(label,fn,v=''){ov={fn};Q.placeholder=label;Q.value=v;LS.innerHTML='';O.hidden=0;Q.focus()}
-function menu(){ov={m:1,i:0};Q.placeholder='Command…';Q.value='';O.hidden=0;Q.focus();ml()}
+function ask(label,fn,v=''){ov={fn};Q.placeholder=label;Q.value=v;LS.innerHTML='';O.hidden=0;Q.focus();hist()}
+function menu(){ov={m:1,i:0};Q.placeholder='Command…';Q.value='';O.hidden=0;Q.focus();ml();hist()}
 function sheet(label,opts){ // small list of choices (phone long-press menu, delete choices); opts = [[label,action],...]
  ov={sh:opts,t:Date.now()};Q.value='';O.classList.add('sh');
- LS.innerHTML=`<div class="hd">${esc(label)}</div>`+opts.map((o,i)=>`<div class="i" data-o="${i}">${o[0]}</div>`).join('');O.hidden=0;
+ LS.innerHTML=`<div class="hd">${esc(label)}</div>`+opts.map((o,i)=>`<div class="i" data-o="${i}">${o[0]}</div>`).join('');O.hidden=0;hist();
 }
-function close(){ov=null;O.hidden=1;O.classList.remove('sh');Q.blur()}
+function close(){ov=null;O.hidden=1;O.classList.remove('sh');Q.blur();hist()}
 Q.onkeydown=ev=>{
  const k=ev.key,n=items().length;
  if(k=='Escape')return close();
@@ -62,10 +62,11 @@ Q.onkeydown=ev=>{
 };
 Q.oninput=()=>{if(ov.m){ov.i=0;ml()}};
 LS.onclick=ev=>{
+ if(held)return; // the finger lifting after a long press must not pick an item
  const o=ev.target.closest('[data-o]');if(o&&ov&&ov.sh){const a=ov.sh[+o.dataset.o][1];close();return a()}
  const el=ev.target.closest('[data-c]');if(el){const c=items()[+el.dataset.c];close();run(c)}
 };
-O.onclick=ev=>{if(ev.target==O&&!(ov&&ov.sh&&Date.now()-ov.t<500))close()}; // (a finger lifting after a long press must not close the menu)
+O.onclick=ev=>{if(ev.target==O&&!held)close()}; // (a finger lifting after a long press must not close the menu)
 
 // ---- View switching (notes / calendar / split) ----
 function setMode(m){leave();mode=m;draw()}
@@ -87,10 +88,19 @@ onkeydown=ev=>{
 $('#bk').onclick=back;$('#mn').onclick=menu;
 $('#ad').onclick=()=>cal()?newTask():pane?newNote():newFolder();
 $('#up').onclick=()=>cal()?shift(-1):move(-1);$('#dn').onclick=()=>cal()?shift(1):move(1);
-$('#st').onclick=()=>{L.link=1;sync()};
+$('#st').onclick=syncNow;
 document.querySelectorAll('#nv button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 addEventListener('keyup',ev=>{if(ev.key=='Tab'){if(tab==1&&mode=='s'&&!ov){cf=!cf;draw()} tab=0}}); // Tab alone in split view = switch side
 addEventListener('blur',()=>tab=0);
+// phone: every touch press on a button / row / day buzzes briefly and glows (mouse presses are left alone)
+const PR='button,.i:not(.h),#ch span,.dc,.wc,.tk';
+let prt;
+addEventListener('pointerdown',ev=>{
+ if(ev.pointerType=='mouse')return;
+ const b=ev.target.closest&&ev.target.closest(PR);if(!b||b.disabled)return;
+ buzz(12);b.classList.add('pr');clearTimeout(prt);
+ prt=setTimeout(()=>document.querySelectorAll('.pr').forEach(e=>e.classList.remove('pr')),350);
+},true);
 
 // ---- Start ----
 fi=Math.min(1,F().length-1);setTh(+L.th||0);draw();setSt(L.link?'◐':'○');sync();

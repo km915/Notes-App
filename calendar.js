@@ -1,5 +1,5 @@
 // calendar.js — calendar views, tasks, the time dial, task form, links between tasks and To-Do notes.
-// Needs: core.js; calls into notes.js (draw, leave) and app.js (ask, menu)
+// Needs: core.js; calls into notes.js (draw, leave, hist) and app.js (ask, menu, sheet)
 // Loaded 3rd (plain <script> tags in index.html share one global scope; order matters).
 
 // ---- Calendar & tasks. One record per day: {id,d:'YYYY-MM-DD',s:'HH:MM',e,b:title,z:done,g:series id} ----
@@ -14,15 +14,16 @@ function drawC(){
  if(cv=='m'){
   const st=addD(cd.slice(0,8)+'01',-((new Date(M.getFullYear(),M.getMonth(),1).getDay()+6)%7));
   h+='<div class="wk">'+days.map(x=>`<b>${x}</b>`).join('')+'</div><div class="mg">';
+  const mx=phone()?2:3; // tasks shown per day (phone: the grid has a fixed size, so fewer + a "+N")
   for(let i=0;i<42;i++){
    const s=addD(st,i),a=TD(s);
-   h+=`<div class="dc${s==cd?' s':''}${s==td?' td':''}${s.slice(0,7)!=cd.slice(0,7)?' o':''}" data-d="${s}"><span>${+s.slice(8)}</span>${a.slice(0,3).map(x=>`<i${x.z?' class="dn"':''}>${esc(x.b)}</i>`).join('')}${a.length>3?`<i>+${a.length-3}</i>`:''}</div>`;
+   h+=`<div class="dc${s==cd?' s':''}${s==td?' td':''}${s.slice(0,7)!=cd.slice(0,7)?' o':''}" data-d="${s}"><span>${+s.slice(8)}</span>${a.slice(0,mx).map(x=>`<i${x.z?' class="dn"':''}>${esc(x.b)}</i>`).join('')}${a.length>mx?`<i>+${a.length-mx}</i>`:''}</div>`;
   }
   h+='</div>';
  }else if(cv=='w'){
   h+='<div class="wg">'+days.map((n,i)=>{const s=addD(cd,i-wd);return `<div class="wc${s==cd?' s':''}" data-d="${s}"><h4>${n} ${+s.slice(8)}</h4>${TD(s).map((x,j)=>`<div class="tk${x.z?' dn':''}${s==cd&&j==ti?' s':''}" data-t="${x.id}">${x.s} ${esc(x.b)}</div>`).join('')}</div>`}).join('')+'</div>';
  }else h+=T.length?T.map((x,j)=>`<div class="tk${x.z?' dn':''}${j==ti?' s':''}" data-t="${x.id}"><b>${x.s}–${x.e}${x.ed?' +1':''}</b>${esc(x.b)}</div>`).join(''):'<div class="h" style="padding:12px">No tasks. Press n to add one.</div>';
- $('#V').innerHTML=h;$('#V').classList.toggle('f',mode=='s'&&cf);
+ $('#V').innerHTML=h;$('#V').classList.toggle('f',mode=='s'&&cf);$('#V').classList.toggle('mv',cv=='m'); // mv = month view (phone: grid fills the screen)
 }
 const go=(n,big)=>{cd=big&&cv=='m'?addM(cd,n):addD(cd,big&&cv=='w'?7*n:n);ti=0;drawC()};
 const setV=v=>{cv=v;drawC()};
@@ -46,7 +47,7 @@ function gone(ts){ // delete tasks and their To-Do notes
  if(sel&&sel.x){pane=Math.min(pane,1);ni=Math.max(0,ni-1)}
  save();draw();
 }
-function delTask(tap){delTaskOf(curT(),tap===1)}
+function delTask(tap){delTaskOf(curT(),tap===1||phone())}
 function delTaskOf(x,tap){ // tap = phone: pick from a list instead of typing
  if(!x)return;
  const all=x.g?D.t.filter(y=>!y.x&&y.g==x.g):[];
@@ -163,7 +164,7 @@ function taskForm(t){
  $('#fe').onclick=()=>{dm=dm&&dm.w=='e'?null:{w:'e',st:'h'};dial()};
  $('#dl').onclick=dclick;
  $('#fx').onclick=closeF;$('#fk').onclick=()=>saveTask(t);$('#fm').onclick=()=>saveTask(t,1);
- fchips();O2.hidden=0;$('#fb').focus();
+ fchips();O2.hidden=0;$('#fb').focus();hist();
 }
 function saveTask(t,det){
  const b=$('#fb').value.trim(),d=$('#fd').value,s=ft.s;
@@ -189,7 +190,7 @@ function saveTask(t,det){
  det?openNote(first):draw();
 }
 O2.onkeydown=ev=>{if(ev.key=='Escape'){ev.stopPropagation();dm?(dm=null,dial()):closeF()}else if(ev.key=='Enter'&&ev.target.tagName!='BUTTON'){ev.stopPropagation();ev.preventDefault();$('#fk').click()}}; // Enter on a button presses that button; in a field it saves
-O2.onclick=ev=>{if(ev.target==O2)closeF()};
+O2.onclick=ev=>{if(ev.target==O2&&!held)closeF()};
 function calKey(ev){
  const k=ev.key=='Backspace'?'Delete':ev.key;
  if(k=='Escape'||k=='?'){ev.preventDefault();return menu()}
@@ -204,6 +205,7 @@ function calKey(ev){
 }
 // ---- Calendar clicks / swipes ----
 $('#V').onclick=ev=>{
+ if(held){held=0;return} // the finger lifting after a long press
  cf=1;
  const b=ev.target.closest('[data-a],[data-v],[data-t],[data-d]');if(!b)return draw();
  const a=b.dataset;
@@ -212,17 +214,18 @@ $('#V').onclick=ev=>{
  else if(a.t){const x=D.t.find(y=>y.id==a.t);cd=x.d;ti=TD(cd).indexOf(x);drawC()}
  else{const same=cd==a.d;cd=a.d;ti=0;if(cv!='d'&&(same||matchMedia('(hover:none)').matches))cv='d';drawC()}
 };
-// long press (phone) or right click (laptop) on a task: Edit / Delete
-let lp,lx,ly,lpAt=0;
+// long press (phone) or right click (laptop) on a task: Edit / Delete. Long press (phone only) on a day or empty space: new task there.
 function taskMenu(el){
- const x=D.t.find(y=>y.id==el.dataset.t);if(!x||Date.now()-lpAt<800)return;lpAt=Date.now();
+ const x=D.t.find(y=>y.id==el.dataset.t);if(!x)return;
  cf=1;cd=x.d;ti=TD(cd).indexOf(x);drawC();
  sheet(`${x.s} ${x.b}`,[['Edit task',editTask],['Delete task',()=>delTask(1)]]);
 }
-$('#V').onpointerdown=ev=>{clearTimeout(lp);const el=ev.target.closest('[data-t]');if(!el||ev.pointerType=='mouse')return;lx=ev.clientX;ly=ev.clientY;lp=setTimeout(()=>taskMenu(el),500)};
-$('#V').onpointermove=ev=>{if(Math.hypot(ev.clientX-lx,ev.clientY-ly)>10)clearTimeout(lp)};
-$('#V').onpointerup=$('#V').onpointercancel=()=>clearTimeout(lp);
-$('#V').oncontextmenu=ev=>{ev.preventDefault();const el=ev.target.closest('[data-t]');el&&taskMenu(el)};
+function dayNew(d){cf=1;cd=d;ti=0;drawC();newTask()}
+onHold($('#V'),(t,touch)=>{
+ const k=t.closest('[data-t]');if(k)return {el:k};
+ if(!touch||t.closest('.tb'))return null;
+ const d=t.closest('[data-d]');return d?{day:d.dataset.d}:cv=='d'?{day:cd}:null; // day view has no day cells: anywhere else = the open day
+},it=>it.el?taskMenu(it.el):dayNew(it.day));
 $('#V').ondblclick=ev=>ev.target.closest('[data-t]')?editTask():ev.target.closest('.dc,.wc')&&newTask();
 let sx;$('#V').ontouchstart=e=>sx=e.touches[0].clientX;
 $('#V').ontouchend=e=>{const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>70)go(d<0?1:-1,1)};

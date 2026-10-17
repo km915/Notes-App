@@ -1,10 +1,17 @@
 // notes.js — folders and notes: drawing the lists, ordering, keys, clicks, column resizing.
-// Needs: core.js; calls into calendar.js (vis, drawC) and app.js (menu, ask)
+// Needs: core.js; calls into calendar.js (vis, drawC) and app.js (menu, ask, sheet)
 // Loaded 2nd (plain <script> tags in index.html share one global scope; order matters).
 
 // ---- UI ----
 const fit=()=>{ET.style.height='auto';if(ET.scrollHeight)ET.style.height=ET.scrollHeight+'px'}; // title box grows with its text
 const stamp=ms=>{const d=new Date(ms);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+' - '+d.getDate()+' '+d.toLocaleDateString(undefined,{month:'short'})};
+// phone back button: one history entry per level (folders, notes, note) plus one while a popup is open.
+// Synced once at the end of each tick, so closing a popup and changing level together makes a single step.
+let ht;
+const hist=()=>{clearTimeout(ht);ht=setTimeout(()=>{
+ const w=pane+(ov?1:0);
+ if(w>hl){history.pushState({p:w},'');hl=w}else if(w<hl){const k=hl-w;hl=w;history.go(-k)}
+},0)};
 const rowH=(x,k,i,s)=>`<div class="i${i==s?' s':''}${!k&&x.id=='todo'?' td':''}" data-k="${k}" data-i="${i}">${esc(k?(x.b.split('\n')[0]||'Empty note'):x.name)}</div>`;
 function draw(){
  syncTodo(); // every task of the next 7 days gets its To-Do note
@@ -30,8 +37,7 @@ function draw(){
  document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('s',b.dataset.m==(mode=='c'?'c':'n')));
  applyTh();
  if(mode!='n')drawC();
- // keep phone back button working: one history entry per level
- if(pane>hl){history.pushState({p:pane},'');hl=pane}else if(pane<hl){const k=hl-pane;hl=pane;history.go(-k)}
+ hist();
 }
 function leave(){const x=N()[ni];if(pane==2&&x&&!x.b.trim()){x.x=1;x.t=Date.now();save()}}
 function back(){if(cal()){cv=cv=='d'?'w':'m';return drawC()}leave();pane=Math.max(0,pane-1);draw()}
@@ -45,18 +51,30 @@ function move(d){
 function newNote(){const f=F()[fi];add(D.n,{f:f.id,b:''});ni=N().length-1;pane=2;draw()}
 function newFolder(){ask('Folder name',v=>{add(D.f,{name:v});fi=F().length-1;ni=0;pane=1;draw()})}
 function rename(){const f=F()[fi];if(f.id=='todo')return toast("The To-Do folder can't be renamed");ask('Rename folder',v=>{f.name=v;f.t=Date.now();save();draw()},f.name)}
-function del(){
- const x=cur();if(!x)return;
+function del(x=cur(),isNote=!!pane){ // x = the folder / note to delete (default: the selected one). Phone: asks with buttons, laptop: type y
+ if(!x)return;
  if(x.id=='todo')return toast("The To-Do folder can't be deleted");
- const tk=pane&&x.k&&D.t.find(y=>y.id==x.k&&!y.x);
- if(tk)return delTaskOf(tk,matchMedia('(hover:none)').matches); // a To-Do note: deleting it deletes its task too
- const nn=pane?0:D.n.filter(n=>n.f==x.id&&!n.x).length; // say exactly what will go
- ask(pane?`Delete note “${x.b.split('\n')[0]||'Empty note'}”? type y`:`Delete folder “${x.name}”${nn?` and its ${nn} note${nn>1?'s':''}`:''}? type y`,v=>{
-  if(v!='y')return;
+ const tk=isNote&&x.k&&D.t.find(y=>y.id==x.k&&!y.x);
+ if(tk)return delTaskOf(tk,phone()); // a To-Do note: deleting it deletes its task too
+ const nn=isNote?0:D.n.filter(n=>n.f==x.id&&!n.x).length; // say exactly what will go
+ const q=isNote?`Delete note “${x.b.split('\n')[0]||'Empty note'}”?`:`Delete folder “${x.name}”${nn?` and its ${nn} note${nn>1?'s':''}`:''}?`;
+ const yes=()=>{
   x.x=1;x.t=Date.now();
-  if(!pane)D.n.forEach(n=>{if(n.f==x.id){n.x=1;n.t=x.t}});
-  pane?ni--:fi--;pane=pane?1:0;save();draw();
- });
+  if(!isNote)D.n.forEach(n=>{if(n.f==x.id){n.x=1;n.t=x.t}});
+  isNote?ni--:fi--;pane=isNote?1:Math.min(pane,1);save();draw();
+ };
+ if(phone())return sheet(q,[['Delete',yes],['Cancel',()=>0]]);
+ ask(q+' type y',v=>{if(v=='y')yes()});
+}
+// long press (phone) on a folder / note row or chip: small menu (Rename / Delete)
+const rowPick=(t,touch)=>{const el=touch&&t.closest('[data-i]');if(!el)return null;return {k:el.dataset.k!=null?+el.dataset.k:+(pane==2),i:+el.dataset.i}}; // chips have no data-k: they list folders in pane 1, notes in pane 2
+function rowMenu(it){
+ const x=(it.k?N():F())[it.i];if(!x)return;
+ if(it.k){leave();if(x.x)return draw();ni=Math.max(0,N().indexOf(x))}else{fi=it.i;ni=0}
+ draw();
+ if(x.id=='todo')return toast("The To-Do folder can't be changed");
+ const name=it.k?x.b.split('\n')[0]||'Empty note':x.name;
+ sheet(name,it.k?[['Delete note',()=>del(x,1)],['Cancel',()=>0]]:[['Rename folder',rename],['Delete folder',()=>del(x,0)],['Cancel',()=>0]]);
 }
 
 function notesKey(ev){ // keys while the notes side has focus
@@ -75,9 +93,11 @@ function notesKey(ev){ // keys while the notes side has focus
 // ---- Clicks / typing ----
 const ed=()=>{const x=N()[ni];if(!x)return;x.b=ET.value.replace(/\n/g,' ')+'\n'+E.value;x.t=x.u=Date.now();save();draw()}; // u = last edited (content only)
 E.oninput=ET.oninput=ed;
+E.onfocus=ET.onfocus=()=>{if(!N()[ni])return;const w=cf;cf=0;if(pane<2||w){pane=2;draw()}}; // clicking into a note = the cursor is in the note (otherwise the first key press would throw it out again)
 ET.onkeydown=ev=>{if(ev.key=='Enter'){ev.preventDefault();E.focus();E.setSelectionRange(0,0)}};
 E.onkeydown=ev=>{if((ev.key=='Backspace'||ev.key=='ArrowUp')&&!E.selectionStart&&!E.selectionEnd&&!ev.shiftKey){ev.preventDefault();ET.focus();ET.setSelectionRange(ET.value.length,ET.value.length)}};
 $('main').onclick=ev=>{
+ if(held){held=0;return} // the finger lifting after a long press
  const w=cf;cf=!!ev.target.closest('#V');if(w!=cf&&mode=='s')draw();
  const el=ev.target.closest('[data-i]');if(!el)return;
  const k=+el.dataset.k,i=+el.dataset.i;
@@ -89,7 +109,13 @@ $('#ch').onclick=ev=>{
  if(pane==1){fi=i;ni=0}else{const x=N()[i];leave();ni=N().indexOf(x)}
  draw();
 };
-onpopstate=()=>{const p=history.state&&history.state.p||0;hl=p;if(p<pane){leave();pane=p;draw()}};
+onpopstate=()=>{ // phone back button
+ const p=history.state&&history.state.p||0;hl=p;
+ if(p>=pane+(ov?1:0))return; // nothing to close (or our own history step arriving)
+ if(ov)ov.form?closeF():close(); // a popup is open: back closes just the popup
+ if(p<pane){leave();pane=p;draw()}
+};
+[$('#P0'),$('#P1'),$('#ch')].forEach(b=>onHold(b,rowPick,rowMenu));
 // drag the dividers to resize the columns (saved per device)
 document.querySelectorAll('.g').forEach(g=>g.onpointerdown=ev=>{
  const k='--w'+g.dataset.c,x0=ev.clientX,w0=$('#P'+g.dataset.c).offsetWidth;

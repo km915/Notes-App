@@ -33,7 +33,21 @@ const F=()=>live(D.f).sort((a,b)=>(b.id=='todo')-(a.id=='todo')),N=()=>F()[fi]?F
 const cur=()=>pane?N()[ni]:F()[fi];
 const save=()=>{L.d=JSON.stringify(D);clearTimeout(tm);tm=setTimeout(sync,2000)};
 const add=(a,o)=>{const x={id:uid(),o:Date.now(),t:Date.now(),...o};a.push(x);save();return x};
-function toast(m){const t=$('#ts');t.textContent=m;t.hidden=0;clearTimeout(t.h);t.h=setTimeout(()=>t.hidden=1,2200)} // small message at the bottom
+function toast(m,ms=2200){const t=$('#ts');t.textContent=m;t.hidden=0;clearTimeout(t.h);t.h=setTimeout(()=>t.hidden=1,ms)} // small message at the bottom
+
+// ---- Phone helpers: touch screen check, vibration, long press ----
+const phone=()=>matchMedia('(hover:none)').matches; // touch screen as the main input
+const buzz=n=>navigator.vibrate&&navigator.vibrate(n); // short vibration (Android; ignored where unsupported)
+let held=0,holdAt=0; // held=1 from a long press until the next touch: the click that follows the lifted finger is ignored
+addEventListener('pointerdown',()=>held=0,true);
+function onHold(box,pick,fn){ // long press (finger) or right click inside box. pick(target,touch) says what was pressed (or null); fn(it) opens its menu
+ let t,x,y;
+ const fire=it=>{if(Date.now()-holdAt<300)return;holdAt=Date.now();held=1;buzz(30);fn(it)}; // (timer and contextmenu event can both fire: once only)
+ box.addEventListener('pointerdown',ev=>{clearTimeout(t);const it=ev.pointerType!='mouse'&&pick(ev.target,1);if(!it)return;x=ev.clientX;y=ev.clientY;t=setTimeout(()=>fire(it),500)});
+ box.addEventListener('pointermove',ev=>{if(Math.hypot(ev.clientX-x,ev.clientY-y)>10)clearTimeout(t)});
+ ['pointerup','pointercancel'].forEach(e=>box.addEventListener(e,()=>clearTimeout(t)));
+ box.addEventListener('contextmenu',ev=>{const it=pick(ev.target,phone());if(it||phone()||box.id=='V')ev.preventDefault();it&&fire(it)});
+}
 
 // ---- Applying the theme (calendar uses its own, brighter palette) ----
 const VN=['bg','pn','tx','dm','ac','se'];

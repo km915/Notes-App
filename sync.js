@@ -3,7 +3,10 @@
 // Loaded 4th (plain <script> tags in index.html share one global scope; order matters).
 
 // ---- Google Drive sync (one file: notes.json) ----
-const setSt=s=>$('#st').textContent=s; // ○ local only/offline  ◐ syncing  ● synced  ! tap to reconnect
+const ST={'○':'Not synced: offline or not connected','◐':'Syncing…','●':'Synced','!':'Sync failed: tap again to reconnect'};
+let stAsk=0; // 1 after a tap on the sync button (phone): the result is shown as a short message
+const setSt=s=>{$('#st').textContent=s;if(stAsk&&s!='◐'){stAsk=0;toast(ST[s],1800)}}; // ○ local only/offline  ◐ syncing  ● synced  ! tap to reconnect
+const syncNow=()=>{L.link=1;if(phone()){stAsk=1;toast(ST['◐'],1800)}sync()};
 const gis=()=>window.google&&google.accounts?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=ok;s.onerror=no;document.head.append(s)});
 const login=()=>new Promise(async(ok,no)=>{
  await gis();

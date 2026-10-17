@@ -12,6 +12,25 @@ Newest first. Add a new entry at the top with every commit (copy the template at
 - Clean-up of old deleted items in `notes.json`
 - 12-hour clock option
 
+## v0.8 — Phone polish: long-press menus, haptics, fixed month grid, Back closes popups
+
+**Added**
+- **Long-press a folder or note** (phone; the list rows and the chip row): a menu slides up with *Rename folder* / *Delete folder* or *Delete note*, then asks *Delete* / *Cancel* with buttons. No typing.
+- **Long-press inside a day** (phone) opens the new-task form on that day: a day in the month or week view, or empty space in the day view (the open day).
+- **Every touch press buzzes briefly and glows** (buttons, list rows, chips, calendar days and tasks). Long press keeps its own stronger buzz. Mouse presses on the laptop are untouched.
+- **Sync button (phone)**: tapping it shows the status for about 2 seconds (*Syncing…*, then *Synced* / *Sync failed: tap again to reconnect* / *Not synced: offline or not connected*).
+
+**Changed**
+- **Phone Back button closes a popup first** (menu, text prompt, task form, choice list); the screen behind stays where it was. A second Back goes up a level as before.
+- **Month view on the phone has a fixed size**: the six rows share the whole screen, never grow when you add tasks, and never scroll. A day shows 2 tasks plus a `+N` chip (laptop still shows 3).
+- **Top bar is bigger on the phone** (taller bar, larger buttons); **Back** and **+** have a larger, translucent box around them.
+- Choice lists on the phone (long-press menus, delete questions) slide up from the bottom with bigger rows. Folder/note rows and chips are a little taller to tap.
+- Deleting from the `⋯` menu (and the `d` command) on a phone asks with buttons instead of typing `y`. On the laptop it still asks `type y`.
+- After a long press, the lifting finger no longer triggers anything behind the menu (a hold flag replaces the old 0.5 s timer).
+
+**Fixed**
+- **Laptop: clicking into a note and typing one character threw the cursor back out** to the folders / notes list. Clicking into the title or text now makes the note the active pane.
+
 ## v0.7.2 — Long-press task menu, deleting a To-Do note deletes its task
 
 **Added**
@@ -148,6 +167,8 @@ The single 560-line `index.html` is now split by job. The code itself is unchang
 - Sync runs while the app is open or reopened; browsers don't allow true background sync when closed.
 - Google login tokens last about an hour; the app renews them, occasionally needs one tap on the `!` icon.
 - Same note edited on two devices before syncing: newest edit wins.
+- Vibration works on Android only (not iPhone). It needs Android's *Touch feedback / vibration* setting on, and can be off in battery-saver mode. The browser also ignores vibration until the page has had its first tap.
+- Pressing `Esc` in a note you created with `n` straight from the folder list returns to the folder list, not the notes list (old quirk of the history steps, not changed).
 
 ---
 
