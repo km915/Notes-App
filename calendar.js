@@ -144,7 +144,7 @@ function dclick(ev){
   okT(h,q)&&pick(q);
  }
 }
-function taskForm(t){
+function taskForm(t,pk){ // t = task to edit (none = new task). pk = open straight on the start-time dial (reminder "Reschedule")
  ov={form:1};
  const s=t?t.s:'09:00';
  ft={s,e:t?t.e:tstr(tmin(s)+15),n:t&&t.ed?1:0,et:t?1:0};dm=null;
@@ -164,7 +164,7 @@ function taskForm(t){
  $('#fe').onclick=()=>{dm=dm&&dm.w=='e'?null:{w:'e',st:'h'};dial()};
  $('#dl').onclick=dclick;
  $('#fx').onclick=closeF;$('#fk').onclick=()=>saveTask(t);$('#fm').onclick=()=>saveTask(t,1);
- fchips();O2.hidden=0;$('#fb').focus();hist();
+ fchips();O2.hidden=0;pk?(dm={w:'s',st:'h'},dial()):$('#fb').focus();hist(); // (no focus on pk: the phone keyboard would cover the dial)
 }
 function saveTask(t,det){
  const b=$('#fb').value.trim(),d=$('#fd').value,s=ft.s;

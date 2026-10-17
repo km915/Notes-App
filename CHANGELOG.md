@@ -4,13 +4,33 @@ Newest first. Add a new entry at the top with every commit (copy the template at
 
 ## Roadmap (not built yet)
 
-- **Android app** (Capacitor, loads this site so web updates arrive automatically; APK installed once)
-- **Reminder notifications** with two buttons: *Mark as done* and *Reschedule* (opens the app on that task's time picker)
-- **Native Google sign-in** in the Android app (no more login popups)
-- Optional "10 minutes before" reminder per task
+- Optional "10 minutes before" reminder per task (small change in `native.js`, no new APK needed)
+- Reminders that refresh in the background without opening the app (needs a new APK: a background worker or push; see Known limits)
 - Hour-grid day view (day view is currently a time-ordered list)
 - Clean-up of old deleted items in `notes.json`
 - 12-hour clock option
+
+## v1.0.0 — Android app, reminders, permanent sign-in, Vercel hosting, tests and pipelines
+
+**Added**
+- **Android app** (`mobile/`): a thin shell (Capacitor 8) that opens the website, so web updates arrive without a new APK. Built and signed by GitHub Actions (`.github/workflows/android.yml`, run by hand). Fixed app id `io.github.km915.notes`.
+- **Task reminders** (Android app only, `native.js`): a notification at each task's start time with two buttons, **Mark as done** and **Reschedule** (opens the task with the start-time dial open). The next 14 days (at most 60 tasks) are scheduled on the phone, so they fire with the app closed. After *Mark as done* from a notification the app steps back to the background.
+- **Menu commands**: *Reminders: check and send a test*, *Sign out of Google on this device*, *Version*.
+- **Permanent sign-in**: `api/auth.js` (Vercel function) keeps Google's refresh token in a secure httpOnly cookie and hands out fresh access tokens silently. No more hourly popups. The Android app uses Android's own account sheet once, then the same server.
+- **Automatic tests** (`tests/`, run by `.github/workflows/test.yml` on every push and pull request): laptop behaviour against a saved trace, phone behaviour, sign-in rules, reminders, the login server.
+- `README.md` (how the project is organised and run), `SETUP.md` (click-by-click setup), `.gitignore`.
+
+**Changed**
+- **Hosting moves from GitHub Pages to Vercel** (see SETUP.md). GitHub Pages keeps working as a fallback (without permanent sign-in).
+- **A Google sign-in screen can only appear after you tap sync** (the sync button, or `Esc` then `s` on the laptop). Timers, focus changes, saving and going online never open one, so nothing pops up while you type. Without a login server (GitHub Pages) the old popup is still used, only on a tap.
+- The service worker no longer touches `/api/` requests.
+- Saving and syncing now top up the reminder list.
+
+**Fixed**
+- Nothing (the reminder-update bug the new tests found was in code that had not been released).
+
+**Removed**
+- Nothing.
 
 ## v0.8 — Phone polish: long-press menus, haptics, fixed month grid, Back closes popups
 
@@ -160,15 +180,23 @@ The single 560-line `index.html` is now split by job. The code itself is unchang
 - Keyboard-first: `Esc` menu, `n` / `f` / `r` / `d`, `Alt+Up/Down` reordering.
 - Works offline (service worker), installable on phone and laptop.
 - Syncs to Google Drive (`notes.json`, `drive.file` scope); newest edit per item wins.
-- Hosted on GitHub Pages.
+- Hosted on GitHub Pages (moved to Vercel in v1.0.0).
 
 ## Known limits
 
-- Sync runs while the app is open or reopened; browsers don't allow true background sync when closed.
-- Google login tokens last about an hour; the app renews them, occasionally needs one tap on the `!` icon.
+- Sync runs while the app is open or reopened; browsers and Android don't allow true background sync for a notes app like this.
+- **Reminders are only as fresh as the last time the app was opened or synced.** A task added on the laptop gets its reminder on the phone after the phone next syncs (open the app). A task made on the phone is scheduled at once.
+- Reminders cover the next 14 days and at most 60 tasks. If you don't open the app for more than 14 days, they run out.
+- Android may delay a reminder by up to ~9 minutes in deep sleep (Doze); in practice it is usually on time. **Force-stopping the app** (Settings > Apps > Notes > Force stop) cancels all reminders until the app is opened again. Some phone makers (Xiaomi, Oppo, Vivo, Samsung "sleeping apps", ...) kill apps harder: set battery for Notes to *Unrestricted* (SETUP.md part 8).
+- Pressing a button on a notification always opens the app for a moment (Android rule for this kind of notification); after *Mark as done* it goes back to the background by itself.
+- Android sign-in also asks for your basic profile (email, name): Google's sign-in sheet always includes these. The app only uses the `drive.file` permission for Drive.
+- Google can ask you to sign in again if you revoke access, change your Google password, or leave the app unused for about 6 months; then tap sync once.
+- Vercel preview addresses (branches) have no login server: they use the popup like GitHub Pages.
 - Same note edited on two devices before syncing: newest edit wins.
-- Vibration works on Android only (not iPhone). It needs Android's *Touch feedback / vibration* setting on, and can be off in battery-saver mode. The browser also ignores vibration until the page has had its first tap.
+- Vibration works on Android only (not iPhone). It needs Android's *Touch feedback / vibration* setting on, and can be off in battery-saver mode.
 - Pressing `Esc` in a note you created with `n` straight from the folder list returns to the folder list, not the notes list (old quirk of the history steps, not changed).
+- **Not verified by the author's tests** (they run in a simulated browser): the APK build itself, the real Google sign-in and code exchange, and how notifications behave on a real phone. SETUP.md part 9 is the checklist for that.
+- Things that need a **new APK** (everything else is a normal web update): a new native plugin or permission, changing the app id or signing key (not possible without losing the update path), changing the web address, a Capacitor major upgrade.
 
 ---
 

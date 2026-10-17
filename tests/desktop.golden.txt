@@ -1,0 +1,24 @@
+start                  {"pane":0,"fi":1,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":[],"tasks":[],"active":"BODY","title":"Folders","rows":1}
+down                   {"pane":0,"fi":1,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":[],"tasks":[],"active":"BODY","title":"Folders","rows":1}
+n                      {"pane":2,"fi":1,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":[""],"tasks":[],"active":"ET","title":"Notes","rows":1}
+typed                  {"pane":2,"fi":1,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"ET","title":"Notes","rows":1}
+esc                    {"pane":0,"fi":1,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"BODY","title":"Folders","rows":1}
+left                   {"pane":0,"fi":1,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"BODY","title":"Folders","rows":1}
+f prompt               {"pane":0,"fi":1,"ni":0,"mode":"n","cv":"m","ov":true,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"q","title":"Folders","rows":1}
+folder Work            {"pane":1,"fi":2,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes","Work"],"notes":["Alpha\nbody one"],"tasks":[],"active":"BODY","title":"Work","rows":1}
+renamed                {"pane":1,"fi":2,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes","Work2"],"notes":["Alpha\nbody one"],"tasks":[],"active":"BODY","title":"Work2","rows":1}
+d asks                 {"pane":0,"fi":2,"ni":0,"mode":"n","cv":"m","ov":true,"folders":["To-Do","Notes","Work2"],"notes":["Alpha\nbody one"],"tasks":[],"active":"q","title":"Folders","rows":1}
+deleted                {"pane":0,"fi":1,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"BODY","title":"Folders","rows":1}
+menu open              {"pane":0,"fi":1,"ni":0,"mode":"n","cv":"m","ov":true,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"q","title":"Folders","rows":1}
+menu closed            {"pane":0,"fi":1,"ni":0,"mode":"n","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"BODY","title":"Folders","rows":1}
+Tab+Enter              {"pane":0,"fi":1,"ni":0,"mode":"c","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"BODY","title":"Calendar","rows":1}
+new task form          {"pane":0,"fi":1,"ni":0,"mode":"c","cv":"m","ov":true,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"fb","title":"Calendar","rows":1}
+saved task             {"pane":0,"fi":1,"ni":0,"mode":"c","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[["Task1","09:00","09:15",0]],"active":"fb","title":"Calendar","rows":1}
+day view               {"pane":0,"fi":1,"ni":0,"mode":"c","cv":"d","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[["Task1","09:00","09:15",0]],"active":"fb","title":"Calendar","rows":1}
+done                   {"pane":0,"fi":1,"ni":0,"mode":"c","cv":"d","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[["Task1","09:00","09:15",1]],"active":"fb","title":"Calendar","rows":1}
+shift +15              {"pane":0,"fi":1,"ni":0,"mode":"c","cv":"d","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[["Task1","09:15","09:30",0]],"active":"fb","title":"Calendar","rows":1}
+month                  {"pane":0,"fi":1,"ni":0,"mode":"c","cv":"m","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[["Task1","09:15","09:30",0]],"active":"fb","title":"Calendar","rows":1}
+delete asks            {"pane":0,"fi":1,"ni":0,"mode":"c","cv":"d","ov":true,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[["Task1","09:15","09:30",0]],"active":"q","title":"Calendar","rows":1}
+task deleted           {"pane":0,"fi":1,"ni":0,"mode":"c","cv":"d","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"BODY","title":"Calendar","rows":1}
+back to notes          {"pane":0,"fi":1,"ni":0,"mode":"n","cv":"d","ov":false,"folders":["To-Do","Notes"],"notes":["Alpha\nbody one"],"tasks":[],"active":"BODY","title":"Folders","rows":1}
+errors: []

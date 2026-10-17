@@ -1,0 +1,14 @@
+{
+  "name": "notes-android",
+  "private": true,
+  "description": "Builds the Android app: a thin shell that opens the website. See prepare.mjs.",
+  "scripts": { "prepare-android": "node prepare.mjs" },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/cli": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/local-notifications": "8.3.1",
+    "@capgo/capacitor-social-login": "8.5.19"
+  }
+}

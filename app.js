@@ -5,7 +5,10 @@
 // ---- COMMANDS: [key, label, action]. Menu (Esc) lists these. ----
 const C=[ // [key, label, action, scope: n=notes, c=calendar, none=general]
  ['Esc','Show / hide this list',()=>0],
- ['s','Sync / connect Drive',()=>{L.link=1;sync()}],
+ ['s','Sync / connect Drive',syncNow],
+ ['','Reminders: check and send a test (Android app)',remindCheck],
+ ['','Sign out of Google on this device',signOut],
+ ['','Version '+VER,()=>toast('Notes v'+VER)],
  ['Tab+Enter','Switch Notes / Calendar (from split view: opens the left side)',swap],
  ['Tab+Left','Split view with the calendar on the left (in a split: swap sides)',()=>split('l')],
  ['Tab+Right','Split view with the calendar on the right (in a split: swap sides)',()=>split('r')],
@@ -103,6 +106,6 @@ addEventListener('pointerdown',ev=>{
 },true);
 
 // ---- Start ----
-fi=Math.min(1,F().length-1);setTh(+L.th||0);draw();setSt(L.link?'◐':'○');sync();
+fi=Math.min(1,F().length-1);setTh(+L.th||0);draw();setSt(L.link?'◐':'○');sync();remindInit();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 navigator.storage&&navigator.storage.persist&&navigator.storage.persist();

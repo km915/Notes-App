@@ -1,0 +1,58 @@
+# Builds the signed Android app (APK). Run it by hand: GitHub > Actions > "Build Android app" > Run workflow.
+# You only need it once (and again if the web address, app id or a native plugin ever changes).
+# Needs (see SETUP.md): repository VARIABLE  APP_URL
+#                       repository SECRETS   KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+name: Build Android app
+on:
+  workflow_dispatch:
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the settings exist
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          KS: ${{ secrets.KEYSTORE_BASE64 }}
+          KP: ${{ secrets.KEYSTORE_PASSWORD }}
+          KA: ${{ secrets.KEY_ALIAS }}
+          KK: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          [ -n "$APP_URL" ] || { echo "::error::Repository variable APP_URL is missing (SETUP.md, part 5)"; exit 1; }
+          for v in KS KP KA KK; do [ -n "${!v}" ] || { echo "::error::A signing secret is missing (SETUP.md, part 5)"; exit 1; }; done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: sudo apt-get update && sudo apt-get install -y imagemagick
+      - name: Make the Android project
+        working-directory: mobile
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: npm ci && node prepare.mjs
+      - name: Build and sign
+        working-directory: mobile/android
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/notes.jks"
+          export KEYSTORE_FILE="$RUNNER_TEMP/notes.jks"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          chmod +x gradlew && ./gradlew assembleRelease
+      - name: Show the signing fingerprint (public information; Google needs the SHA-1)
+        run: keytool -printcert -jarfile mobile/android/app/build/outputs/apk/release/app-release.apk | grep -E "SHA1|SHA256|Owner"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: notes-apk
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30

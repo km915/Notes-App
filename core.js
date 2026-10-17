@@ -3,6 +3,7 @@
 // Loaded 1st (plain <script> tags in index.html share one global scope; order matters).
 
 // ---- CONFIG: paste your Google OAuth Client ID here ----
+const VER='1.0.0'; // shown in the menu; keep in step with CHANGELOG.md
 const CID='58518608488-05qgos3pv2n23l76617aou61f46ihdlf.apps.googleusercontent.com';
 const SCOPE='https://www.googleapis.com/auth/drive.file';
 
@@ -31,7 +32,7 @@ const cal=()=>mode=='c'||mode=='s'&&cf;
 const live=a=>a.filter(x=>!x.x).sort((a,b)=>a.o-b.o);
 const F=()=>live(D.f).sort((a,b)=>(b.id=='todo')-(a.id=='todo')),N=()=>F()[fi]?F()[fi].id=='todo'?todoList():live(D.n.filter(n=>n.f==F()[fi].id)):[]; // To-Do notes come from calendar.js (sorted by day)
 const cur=()=>pane?N()[ni]:F()[fi];
-const save=()=>{L.d=JSON.stringify(D);clearTimeout(tm);tm=setTimeout(sync,2000)};
+const save=()=>{L.d=JSON.stringify(D);clearTimeout(tm);tm=setTimeout(sync,2000);plan()}; // plan() = reschedule phone reminders (native.js; does nothing in a browser)
 const add=(a,o)=>{const x={id:uid(),o:Date.now(),t:Date.now(),...o};a.push(x);save();return x};
 function toast(m,ms=2200){const t=$('#ts');t.textContent=m;t.hidden=0;clearTimeout(t.h);t.h=setTimeout(()=>t.hidden=1,ms)} // small message at the bottom
 

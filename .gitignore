@@ -1,0 +1,9 @@
+# generated or private: never commit
+node_modules/
+mobile/android/
+mobile/www/
+mobile/capacitor.config.json
+*.jks
+*.keystore
+.vercel/
+.env*
